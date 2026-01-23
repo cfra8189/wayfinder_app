@@ -116,10 +116,9 @@ export default function Dashboard() {
             </Link>
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg bg-theme-secondary text-theme-secondary hover:text-theme-primary transition-colors"
-              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              className="text-theme-muted hover:text-theme-primary text-xs font-mono transition-colors"
             >
-              {theme === "dark" ? "☀️" : "🌙"}
+              [{theme}]
             </button>
             <div className="flex items-center gap-2">
               {user?.profileImageUrl && (

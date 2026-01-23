@@ -153,10 +153,9 @@ export default function Landing() {
           
           <button
             onClick={toggleTheme}
-            className="absolute top-4 right-4 p-2 rounded-lg bg-theme-secondary border border-theme text-theme-secondary hover:text-theme-primary transition-colors"
-            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            className="absolute top-4 right-4 text-theme-muted hover:text-theme-primary text-xs font-mono transition-colors"
           >
-            {theme === "dark" ? "☀️" : "🌙"}
+            [{theme}]
           </button>
 
           <div className="text-center mb-6">
