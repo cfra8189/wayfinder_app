@@ -155,6 +155,7 @@ function renderProjects() {
     
     container.innerHTML = filtered.map(p => {
         const meta = p.metadata || {};
+        const hasMedia = meta.audio_url || meta.video_url || meta.artwork_url || meta.files_url;
         return `
             <div class="card p-4 rounded-lg cursor-pointer hover:border-gray-600" onclick="openEditProject(${p.id})">
                 <div class="flex items-center justify-between">
@@ -163,6 +164,12 @@ function renderProjects() {
                         <div>
                             <p class="font-bold">${p.title}</p>
                             <p class="text-xs text-gray-500">${p.type} ${meta.release_date ? '| Release: ' + meta.release_date : ''}</p>
+                            ${hasMedia ? '<div class="flex gap-2 mt-1">' + 
+                                (meta.audio_url ? '<a href="' + meta.audio_url + '" target="_blank" onclick="event.stopPropagation()" class="text-xs text-green-400 hover:underline">Audio</a>' : '') +
+                                (meta.video_url ? '<a href="' + meta.video_url + '" target="_blank" onclick="event.stopPropagation()" class="text-xs text-blue-400 hover:underline">Video</a>' : '') +
+                                (meta.artwork_url ? '<a href="' + meta.artwork_url + '" target="_blank" onclick="event.stopPropagation()" class="text-xs text-purple-400 hover:underline">Artwork</a>' : '') +
+                                (meta.files_url ? '<a href="' + meta.files_url + '" target="_blank" onclick="event.stopPropagation()" class="text-xs text-yellow-400 hover:underline">Files</a>' : '') +
+                            '</div>' : ''}
                         </div>
                     </div>
                     <div class="flex items-center gap-4">
@@ -189,6 +196,10 @@ function openNewProject() {
     document.getElementById("meta-upc").value = "";
     document.getElementById("meta-copyright").value = "";
     document.getElementById("meta-release-date").value = "";
+    document.getElementById("media-audio").value = "";
+    document.getElementById("media-video").value = "";
+    document.getElementById("media-artwork").value = "";
+    document.getElementById("media-files").value = "";
     document.getElementById("project-modal").classList.remove("hidden");
 }
 
@@ -208,6 +219,10 @@ function openEditProject(id) {
     document.getElementById("meta-upc").value = meta.upc || "";
     document.getElementById("meta-copyright").value = meta.copyright || "";
     document.getElementById("meta-release-date").value = meta.release_date || "";
+    document.getElementById("media-audio").value = meta.audio_url || "";
+    document.getElementById("media-video").value = meta.video_url || "";
+    document.getElementById("media-artwork").value = meta.artwork_url || "";
+    document.getElementById("media-files").value = meta.files_url || "";
     document.getElementById("project-modal").classList.remove("hidden");
 }
 
@@ -228,7 +243,11 @@ document.getElementById("project-form").addEventListener("submit", async (e) => 
             isrc: document.getElementById("meta-isrc").value || null,
             upc: document.getElementById("meta-upc").value || null,
             copyright: document.getElementById("meta-copyright").value || null,
-            release_date: document.getElementById("meta-release-date").value || null
+            release_date: document.getElementById("meta-release-date").value || null,
+            audio_url: document.getElementById("media-audio").value || null,
+            video_url: document.getElementById("media-video").value || null,
+            artwork_url: document.getElementById("media-artwork").value || null,
+            files_url: document.getElementById("media-files").value || null
         }
     };
     
