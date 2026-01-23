@@ -34,12 +34,15 @@ async function getUncachableResendClient() {
 
 export async function sendVerificationEmail(to: string, token: string, baseUrl: string) {
   try {
+    console.log('Attempting to send verification email to:', to);
     const { client, fromEmail } = await getUncachableResendClient();
+    console.log('Resend client obtained, fromEmail:', fromEmail);
     
     const verifyUrl = `${baseUrl}/api/auth/verify?token=${token}`;
+    console.log('Verification URL:', verifyUrl);
     
-    await client.emails.send({
-      from: fromEmail || 'WayfinderOS <noreply@resend.dev>',
+    const result = await client.emails.send({
+      from: fromEmail || 'WayfinderOS <onboarding@resend.dev>',
       to: [to],
       subject: 'Verify your WayfinderOS account',
       html: `
@@ -67,9 +70,11 @@ export async function sendVerificationEmail(to: string, token: string, baseUrl: 
       `
     });
     
+    console.log('Email sent successfully:', result);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to send verification email:', error);
+    console.error('Error details:', error?.message, error?.statusCode);
     return false;
   }
 }
