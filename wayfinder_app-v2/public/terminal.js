@@ -92,6 +92,13 @@ async function sendCommand(cmd) {
     return;
   }
   printLine(data?.text || "(no content)");
+  
+  if (data?.redirect) {
+    printLine("Redirecting...", ["muted"]);
+    setTimeout(() => {
+      window.location.href = data.redirect;
+    }, 1000);
+  }
 }
 
 formEl.addEventListener("submit", (e) => {
