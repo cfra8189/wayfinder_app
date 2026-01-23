@@ -217,6 +217,7 @@ function renderProject() {
     renderMediaLinks(meta);
     renderWorkflowSteps(workflow);
     renderDocumentation(workflow);
+    renderMonitoringStats();
 }
 
 function renderMediaLinks(meta) {
@@ -434,6 +435,97 @@ function formatDate(dateStr) {
     if (!dateStr) return "-";
     return new Date(dateStr).toLocaleDateString();
 }
+
+function showMonitoringGuide() {
+    document.getElementById("monitoring-guide-modal").classList.remove("hidden");
+}
+
+function closeMonitoringGuide() {
+    document.getElementById("monitoring-guide-modal").classList.add("hidden");
+}
+
+function openAddStatsModal() {
+    document.getElementById("stats-date").value = new Date().toISOString().split('T')[0];
+    document.getElementById("stats-platform").value = "";
+    document.getElementById("stats-streams").value = "";
+    document.getElementById("stats-listeners").value = "";
+    document.getElementById("stats-earnings").value = "";
+    document.getElementById("stats-notes").value = "";
+    document.getElementById("stats-modal").classList.remove("hidden");
+}
+
+function closeAddStatsModal() {
+    document.getElementById("stats-modal").classList.add("hidden");
+}
+
+function formatNumber(num) {
+    if (!num) return "--";
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+    if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+    return num.toString();
+}
+
+function renderMonitoringStats() {
+    const meta = currentProject.metadata || {};
+    const stats = meta.streaming_stats || [];
+    
+    if (stats.length > 0) {
+        const latest = stats[stats.length - 1];
+        document.getElementById("total-streams").textContent = formatNumber(latest.streams);
+        document.getElementById("monthly-listeners").textContent = formatNumber(latest.listeners);
+        
+        const historyHtml = stats.slice(-5).reverse().map(s => `
+            <div class="flex justify-between items-center text-xs py-1 border-b border-gray-800">
+                <span class="text-gray-500">${s.date} - ${s.platform}</span>
+                <span class="text-gray-400">${formatNumber(s.streams)} streams</span>
+            </div>
+        `).join("");
+        document.getElementById("stats-history").innerHTML = historyHtml;
+    } else {
+        document.getElementById("total-streams").textContent = "--";
+        document.getElementById("monthly-listeners").textContent = "--";
+        document.getElementById("stats-history").innerHTML = '<p class="text-xs text-gray-500">No stats recorded yet</p>';
+    }
+}
+
+document.getElementById("stats-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    
+    const newStat = {
+        date: document.getElementById("stats-date").value,
+        platform: document.getElementById("stats-platform").value,
+        streams: parseInt(document.getElementById("stats-streams").value) || null,
+        listeners: parseInt(document.getElementById("stats-listeners").value) || null,
+        earnings: document.getElementById("stats-earnings").value || null,
+        notes: document.getElementById("stats-notes").value || null
+    };
+    
+    const meta = currentProject.metadata || {};
+    const stats = meta.streaming_stats || [];
+    stats.push(newStat);
+    
+    const updatedMetadata = {
+        ...meta,
+        streaming_stats: stats
+    };
+    
+    try {
+        const res = await fetch(`/api/projects/${currentProject.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ metadata: updatedMetadata })
+        });
+        
+        if (res.ok) {
+            closeAddStatsModal();
+            loadProject();
+        } else {
+            alert("Failed to save stats");
+        }
+    } catch {
+        alert("Connection error");
+    }
+});
 
 function showMain() {
     document.getElementById("auth-redirect").classList.add("hidden");
