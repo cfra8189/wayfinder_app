@@ -102,6 +102,88 @@ export default function CreativeSpace() {
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
+  function getMediaEmbed(url: string) {
+    if (!url) return null;
+    
+    // YouTube
+    const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (ytMatch) {
+      return (
+        <div className="media-embed mb-3">
+          <iframe
+            src={`https://www.youtube.com/embed/${ytMatch[1]}`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      );
+    }
+
+    // Vimeo
+    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoMatch) {
+      return (
+        <div className="media-embed mb-3">
+          <iframe
+            src={`https://player.vimeo.com/video/${vimeoMatch[1]}`}
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      );
+    }
+
+    // SoundCloud
+    if (url.includes("soundcloud.com")) {
+      return (
+        <div className="media-embed mb-3">
+          <iframe
+            src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true`}
+            allow="autoplay"
+          />
+        </div>
+      );
+    }
+
+    // Spotify
+    const spotifyMatch = url.match(/open\.spotify\.com\/(track|album|playlist|episode)\/([a-zA-Z0-9]+)/);
+    if (spotifyMatch) {
+      return (
+        <div className="media-embed mb-3">
+          <iframe
+            src={`https://open.spotify.com/embed/${spotifyMatch[1]}/${spotifyMatch[2]}`}
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          />
+        </div>
+      );
+    }
+
+    // Image URLs
+    if (url.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i) || url.includes("images.unsplash.com") || url.includes("pbs.twimg.com") || url.includes("i.pinimg.com")) {
+      return (
+        <div className="media-embed mb-3">
+          <img src={url} alt="Inspiration" loading="lazy" />
+        </div>
+      );
+    }
+
+    // Pinterest
+    if (url.includes("pinterest.com/pin/")) {
+      return (
+        <a href={url} target="_blank" rel="noreferrer" className="block media-embed mb-3 p-4 text-center">
+          <span className="text-theme-muted text-sm">View on Pinterest →</span>
+        </a>
+      );
+    }
+
+    // Default: show link
+    return (
+      <a href={url} target="_blank" rel="noreferrer" className="text-accent text-xs hover:underline block mb-3">
+        {url.length > 40 ? url.substring(0, 40) + "..." : url} →
+      </a>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <header className="border-b border-theme p-4">
@@ -188,15 +270,11 @@ export default function CreativeSpace() {
                   </div>
                 </div>
                 <p className="text-sm whitespace-pre-wrap mb-3">{note.content}</p>
-                {note.media_url && (
-                  <a href={note.media_url} target="_blank" rel="noreferrer" className="text-accent text-xs hover:underline block mb-2">
-                    View Media →
-                  </a>
-                )}
+                {note.media_url && getMediaEmbed(note.media_url)}
                 {note.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {note.tags.map(tag => (
-                      <span key={tag} className="text-xs bg-gray-800 px-2 py-1 rounded">{tag}</span>
+                      <span key={tag} className="tag-pill">{tag}</span>
                     ))}
                   </div>
                 )}
