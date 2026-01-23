@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | WayfinderOS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'JetBrains Mono', monospace; }
+        body { background: #0a0a0a; }
+        .accent { color: #c3f53c; }
+        .btn-primary { background: #22c55e; }
+        .btn-primary:hover { background: #16a34a; }
+        .input-field { background: #111; border: 1px solid #333; }
+        .input-field:focus { border-color: #c3f53c; outline: none; }
+        .card { background: #111; border: 1px solid #222; }
+        .card:hover { border-color: #333; }
+        .status-concept { background: #374151; }
+        .status-development { background: #1d4ed8; }
+        .status-review { background: #d97706; }
+        .status-published { background: #16a34a; }
+    </style>
+</head>
+<body class="text-white min-h-screen">
+    <div id="auth-screen" class="min-h-screen flex items-center justify-center p-6">
+        <div class="card p-8 rounded-xl max-w-md w-full">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-[#c3f53c] rounded-lg flex items-center justify-center text-black font-bold">W</div>
+                <div>
+                    <h1 class="text-xl accent font-bold">WAYFINDER OS</h1>
+                    <p class="text-gray-500 text-xs">Project Tracker</p>
+                </div>
+            </div>
+            
+            <div id="login-form-container">
+                <h2 class="text-lg mb-4">Sign In</h2>
+                <form id="login-form" class="space-y-4">
+                    <input type="email" id="login-email" placeholder="Email" class="input-field w-full p-3 rounded" required>
+                    <input type="password" id="login-password" placeholder="Password" class="input-field w-full p-3 rounded" required>
+                    <button type="submit" class="btn-primary w-full py-3 rounded text-black font-bold">SIGN IN</button>
+                </form>
+                <p class="text-center text-gray-500 text-sm mt-4">
+                    New here? <button onclick="showRegister()" class="accent hover:underline">Create Account</button>
+                </p>
+            </div>
+            
+            <div id="register-form-container" class="hidden">
+                <h2 class="text-lg mb-4">Create Account</h2>
+                <form id="register-form" class="space-y-4">
+                    <input type="text" id="reg-name" placeholder="Full Name" class="input-field w-full p-3 rounded" required>
+                    <input type="email" id="reg-email" placeholder="Email" class="input-field w-full p-3 rounded" required>
+                    <input type="password" id="reg-password" placeholder="Password" class="input-field w-full p-3 rounded" required>
+                    <select id="reg-role" class="input-field w-full p-3 rounded">
+                        <option value="creator">Individual Creator</option>
+                        <option value="studio">Studio / Business</option>
+                    </select>
+                    <input type="text" id="reg-business" placeholder="Business Name (optional)" class="input-field w-full p-3 rounded">
+                    <button type="submit" class="btn-primary w-full py-3 rounded text-black font-bold">CREATE ACCOUNT</button>
+                </form>
+                <p class="text-center text-gray-500 text-sm mt-4">
+                    Have an account? <button onclick="showLogin()" class="accent hover:underline">Sign In</button>
+                </p>
+            </div>
+            
+            <p id="auth-error" class="text-red-400 text-sm mt-4 hidden text-center"></p>
+        </div>
+    </div>
+
+    <div id="dashboard" class="hidden">
+        <header class="border-b border-gray-800 p-4">
+            <div class="max-w-6xl mx-auto flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-[#c3f53c] rounded flex items-center justify-center text-black font-bold text-sm">W</div>
+                    <span class="accent font-bold">WAYFINDER OS</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span id="user-name" class="text-gray-400 text-sm"></span>
+                    <a href="/" class="text-gray-500 hover:text-white text-sm">Terminal</a>
+                    <a href="/generator.html" class="text-gray-500 hover:text-white text-sm">Agreements</a>
+                    <button onclick="logout()" class="text-gray-500 hover:text-red-400 text-sm">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-6xl mx-auto p-6">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="text-2xl font-bold">Project Tracker</h1>
+                    <p class="text-gray-500 text-sm">Track your work from concept to published</p>
+                </div>
+                <button onclick="openNewProject()" class="btn-primary px-4 py-2 rounded text-black font-bold text-sm">
+                    + NEW PROJECT
+                </button>
+            </div>
+
+            <div class="grid grid-cols-4 gap-4 mb-8">
+                <div class="card p-4 rounded-lg">
+                    <p class="text-gray-500 text-xs mb-1">TOTAL</p>
+                    <p id="stat-total" class="text-2xl font-bold">0</p>
+                </div>
+                <div class="card p-4 rounded-lg">
+                    <p class="text-gray-500 text-xs mb-1">CONCEPT</p>
+                    <p id="stat-concept" class="text-2xl font-bold text-gray-400">0</p>
+                </div>
+                <div class="card p-4 rounded-lg">
+                    <p class="text-gray-500 text-xs mb-1">IN PROGRESS</p>
+                    <p id="stat-development" class="text-2xl font-bold text-blue-400">0</p>
+                </div>
+                <div class="card p-4 rounded-lg">
+                    <p class="text-gray-500 text-xs mb-1">PUBLISHED</p>
+                    <p id="stat-published" class="text-2xl font-bold text-green-400">0</p>
+                </div>
+            </div>
+
+            <div class="mb-4 flex gap-2">
+                <button onclick="filterProjects('all')" class="filter-btn px-3 py-1 rounded text-sm bg-gray-800" data-filter="all">All</button>
+                <button onclick="filterProjects('concept')" class="filter-btn px-3 py-1 rounded text-sm bg-gray-900" data-filter="concept">Concept</button>
+                <button onclick="filterProjects('development')" class="filter-btn px-3 py-1 rounded text-sm bg-gray-900" data-filter="development">Development</button>
+                <button onclick="filterProjects('review')" class="filter-btn px-3 py-1 rounded text-sm bg-gray-900" data-filter="review">Review</button>
+                <button onclick="filterProjects('published')" class="filter-btn px-3 py-1 rounded text-sm bg-gray-900" data-filter="published">Published</button>
+            </div>
+
+            <div id="projects-list" class="space-y-3">
+                <p class="text-gray-500 text-center py-8">No projects yet. Create your first project!</p>
+            </div>
+        </main>
+    </div>
+
+    <div id="project-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-6 z-50">
+        <div class="card p-6 rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modal-title" class="text-lg font-bold">New Project</h3>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-white">&times;</button>
+            </div>
+            <form id="project-form" class="space-y-4">
+                <input type="hidden" id="project-id">
+                <div>
+                    <label class="block text-sm accent mb-1">Title *</label>
+                    <input type="text" id="project-title" class="input-field w-full p-3 rounded" required>
+                </div>
+                <div>
+                    <label class="block text-sm accent mb-1">Type</label>
+                    <select id="project-type" class="input-field w-full p-3 rounded">
+                        <option value="single">Single</option>
+                        <option value="ep">EP</option>
+                        <option value="album">Album</option>
+                        <option value="beat">Beat/Instrumental</option>
+                        <option value="visual">Visual/Video</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm accent mb-1">Status</label>
+                    <select id="project-status" class="input-field w-full p-3 rounded">
+                        <option value="concept">Concept</option>
+                        <option value="development">Development</option>
+                        <option value="review">Review</option>
+                        <option value="published">Published</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm accent mb-1">Description</label>
+                    <textarea id="project-description" class="input-field w-full p-3 rounded" rows="3"></textarea>
+                </div>
+                <div id="metadata-section" class="space-y-3 border-t border-gray-700 pt-4">
+                    <p class="text-sm accent">Metadata</p>
+                    <input type="text" id="meta-isrc" placeholder="ISRC Code" class="input-field w-full p-2 rounded text-sm">
+                    <input type="text" id="meta-upc" placeholder="UPC Code" class="input-field w-full p-2 rounded text-sm">
+                    <input type="text" id="meta-copyright" placeholder="Copyright Registration #" class="input-field w-full p-2 rounded text-sm">
+                    <input type="text" id="meta-release-date" placeholder="Release Date (YYYY-MM-DD)" class="input-field w-full p-2 rounded text-sm">
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1 py-3 rounded text-black font-bold">SAVE PROJECT</button>
+                    <button type="button" onclick="closeModal()" class="bg-gray-700 px-6 py-3 rounded">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
