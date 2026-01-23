@@ -285,10 +285,173 @@ async function deleteProjectHandler(id) {
     }
 }
 
+const tourSteps = [
+    {
+        element: null,
+        title: "Welcome to WayfinderOS!",
+        text: "Let's take a quick tour to help you get started with managing your creative projects.",
+        position: "center"
+    },
+    {
+        element: "#new-project-btn",
+        title: "Create Projects",
+        text: "Click here to create a new project. Track singles, EPs, albums, beats, and more from concept to publication.",
+        position: "bottom"
+    },
+    {
+        element: "#stats-panel",
+        title: "Project Overview",
+        text: "See your project stats at a glance. Track how many are in concept, development, or published.",
+        position: "bottom"
+    },
+    {
+        element: "#filter-buttons",
+        title: "Filter Your Work",
+        text: "Quickly filter projects by status. Focus on what needs attention right now.",
+        position: "bottom"
+    },
+    {
+        element: "#projects-list",
+        title: "Your Projects",
+        text: "All your projects appear here. Click any project to edit details, add metadata (ISRC, UPC), or link media files.",
+        position: "top"
+    },
+    {
+        element: "#nav-agreements",
+        title: "Generate Agreements",
+        text: "Create professional music agreements like split sheets, licenses, and contracts. Download as PDF!",
+        position: "bottom"
+    }
+];
+
+let currentTourStep = 0;
+let tourOverlay = null;
+let tourTooltip = null;
+
+function startTour() {
+    currentTourStep = 0;
+    showTourStep();
+}
+
+function showTourStep() {
+    clearTourHighlights();
+    
+    if (currentTourStep >= tourSteps.length) {
+        endTour();
+        return;
+    }
+    
+    const step = tourSteps[currentTourStep];
+    
+    if (!tourOverlay) {
+        tourOverlay = document.createElement("div");
+        tourOverlay.className = "tour-overlay";
+        document.body.appendChild(tourOverlay);
+    }
+    
+    if (step.element) {
+        const el = document.querySelector(step.element);
+        if (el) {
+            el.classList.add("tour-highlight");
+        }
+    }
+    
+    showTooltip(step);
+}
+
+function showTooltip(step) {
+    if (tourTooltip) tourTooltip.remove();
+    
+    tourTooltip = document.createElement("div");
+    tourTooltip.className = "tour-tooltip";
+    
+    const dots = tourSteps.map((_, i) => 
+        `<div class="tour-step-dot ${i === currentTourStep ? 'active' : ''}"></div>`
+    ).join("");
+    
+    tourTooltip.innerHTML = `
+        <h4>${step.title}</h4>
+        <p>${step.text}</p>
+        <div class="tour-step-indicator">${dots}</div>
+        <div class="tour-buttons">
+            <button class="tour-btn tour-skip" onclick="endTour()">Skip</button>
+            <button class="tour-btn tour-next" onclick="nextTourStep()">
+                ${currentTourStep === tourSteps.length - 1 ? "Done" : "Next"}
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(tourTooltip);
+    positionTooltip(step);
+}
+
+function positionTooltip(step) {
+    if (step.position === "center" || !step.element) {
+        tourTooltip.style.top = "50%";
+        tourTooltip.style.left = "50%";
+        tourTooltip.style.transform = "translate(-50%, -50%)";
+        return;
+    }
+    
+    const el = document.querySelector(step.element);
+    if (!el) return;
+    
+    const rect = el.getBoundingClientRect();
+    const tooltipRect = tourTooltip.getBoundingClientRect();
+    
+    let top, left;
+    
+    if (step.position === "bottom") {
+        top = rect.bottom + 12;
+        left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+    } else if (step.position === "top") {
+        top = rect.top - tooltipRect.height - 12;
+        left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+    }
+    
+    left = Math.max(16, Math.min(left, window.innerWidth - tooltipRect.width - 16));
+    top = Math.max(16, top);
+    
+    tourTooltip.style.top = top + "px";
+    tourTooltip.style.left = left + "px";
+    tourTooltip.style.transform = "none";
+}
+
+function nextTourStep() {
+    currentTourStep++;
+    showTourStep();
+}
+
+function clearTourHighlights() {
+    document.querySelectorAll(".tour-highlight").forEach(el => {
+        el.classList.remove("tour-highlight");
+    });
+}
+
+function endTour() {
+    clearTourHighlights();
+    if (tourOverlay) {
+        tourOverlay.remove();
+        tourOverlay = null;
+    }
+    if (tourTooltip) {
+        tourTooltip.remove();
+        tourTooltip = null;
+    }
+    localStorage.setItem("wayfinder_tour_seen", "true");
+}
+
+function checkFirstVisit() {
+    if (!localStorage.getItem("wayfinder_tour_seen")) {
+        setTimeout(startTour, 500);
+    }
+}
+
 (async () => {
     const isAuth = await checkAuth();
     if (isAuth) {
         showDashboard();
+        checkFirstVisit();
     } else {
         showAuthScreen();
     }

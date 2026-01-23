@@ -91,6 +91,12 @@ Preferred communication style: Simple, everyday language.
 - `/generator.html` - Agreement generator (public access)
 - `/admin.html` - Platform admin dashboard
 
+### Guided Tour
+- Auto-starts on first login (stored in localStorage)
+- 6-step walkthrough: Welcome, Create Projects, Stats, Filters, Projects List, Agreements
+- "Help" button in nav to restart tour anytime
+- Visual highlights with tooltips for each feature
+
 ## External Dependencies
 
 ### Runtime Dependencies
