@@ -22,7 +22,10 @@ app.post("/api/command", async (req, res) => {
   const cmd = input.toLowerCase().trim();
   
   if (cmd === "help") {
-    return res.json({ text: "SYSTEM COMMANDS:\n- help: Display this manual\n- framework: View the HTML/CSS/JS creative identity logic\n- agreements: List music industry agreement templates\n- generate [name]: Create a specific agreement (e.g., 'generate split_sheet')\n- status: Check system integrity\n- clear: Purge terminal history" });
+    return res.json({ text: "SYSTEM COMMANDS:\n- help: Display this manual\n- framework: View the HTML/CSS/JS creative identity logic\n- agreements: List music industry agreement templates\n- generate [name]: Create a specific agreement (e.g., 'generate split_sheet')\n- status: Check system integrity\n- clear: Purge terminal history\n- admin: Access admin dashboard" });
+  }
+  if (cmd === "admin") {
+    return res.json({ text: "ADMIN ACCESS: Navigate to /admin.html to access the dashboard." });
   }
   if (cmd === "status") {
     return res.json({ text: "SYSTEM STATUS: OPTIMAL\nCORES: 128\nMEMORY: 1.2TB AVAILABLE" });
