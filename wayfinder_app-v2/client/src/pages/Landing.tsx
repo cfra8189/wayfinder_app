@@ -4,6 +4,7 @@ export default function Landing() {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [error, setError] = useState("");
@@ -17,7 +18,7 @@ export default function Landing() {
     try {
       const endpoint = mode === "register" ? "/api/auth/register" : "/api/auth/login";
       const body = mode === "register" 
-        ? { email, password, firstName, lastName }
+        ? { email, password, displayName, firstName, lastName }
         : { email, password };
 
       const res = await fetch(endpoint, {
@@ -97,28 +98,41 @@ export default function Landing() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === "register" && (
-              <div className="grid grid-cols-2 gap-4">
+              <>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">First Name</label>
+                  <label className="block text-sm text-gray-400 mb-1">Artist / Business Name *</label>
                   <input
                     type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
                     className="input-field w-full p-3 rounded"
-                    placeholder="John"
+                    placeholder="Your stage name or business"
+                    required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Last Name</label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="input-field w-full p-3 rounded"
-                    placeholder="Doe"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">First Name</label>
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="input-field w-full p-3 rounded"
+                      placeholder="John"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Last Name</label>
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="input-field w-full p-3 rounded"
+                      placeholder="Doe"
+                    />
+                  </div>
                 </div>
-              </div>
+              </>
             )}
 
             <div>
