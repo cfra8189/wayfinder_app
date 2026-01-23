@@ -29,12 +29,22 @@ Preferred communication style: Simple, everyday language.
 - **Port**: 5000
 
 ### API Structure
-- `POST /api/command` - Processes terminal commands (help, status, echo)
+- `POST /api/command` - Processes terminal commands (help, status, generator, admin, etc.)
+- `POST /api/admin/login` - Admin authentication with session management
+- `POST /api/admin/logout` - End admin session
+- `GET /api/admin/check` - Verify admin authentication status
 - Static JSON data store at `/public/data.json` for templates and framework definitions
+
+### Agreement Generator
+- **Location**: `/generator.html` - Client-facing agreement creation tool
+- **3-Step Flow**: Select agreement type → Fill in details → View/Download
+- **PDF Export**: Client-side PDF generation using jsPDF library
+- **11 Agreement Types**: Split sheets, licenses (basic/standard/premium), production, confidentiality, content release, exclusive license, buyout, coaching
 
 ### Data Storage
 - **Current**: File-based JSON (`data.json`) containing agreement templates and framework definitions
-- **No Database**: Simple prototype without persistent storage
+- **Admin Data**: Client/session data stored in localStorage (prototype phase)
+- **No Database**: Simple prototype without persistent server-side storage
 - **Client Data Model**: Conceptual folder structure for clients (session docs, brand documents, IP folders)
 
 ### Key Design Decisions
@@ -65,6 +75,8 @@ Preferred communication style: Simple, everyday language.
 - **Tailwind CSS** - Loaded via CDN for utility classes
 
 ### Environment Variables Required
+- `ADMIN_PASSWORD` - Required for admin dashboard access
+- `SESSION_SECRET` - Optional, auto-generated if not provided
 - OpenAI API key (for future AI integration)
 
 ### Frontend Resources
