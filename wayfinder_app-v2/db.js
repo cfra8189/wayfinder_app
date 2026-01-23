@@ -51,6 +51,19 @@ export async function initDatabase() {
         notes TEXT,
         created_at TIMESTAMP DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS creative_notes (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        category VARCHAR(100) DEFAULT 'idea',
+        title VARCHAR(255),
+        content TEXT,
+        media_urls JSONB DEFAULT '[]',
+        tags JSONB DEFAULT '[]',
+        is_pinned BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
     `);
     console.log("Database tables initialized");
   } finally {
@@ -162,6 +175,63 @@ export async function getStudioClients(studioId) {
     [studioId]
   );
   return result.rows;
+}
+
+export async function createNote(userId, category, title, content, mediaUrls = [], tags = []) {
+  const result = await pool.query(
+    `INSERT INTO creative_notes (user_id, category, title, content, media_urls, tags)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+    [userId, category, title, content, JSON.stringify(mediaUrls), JSON.stringify(tags)]
+  );
+  return result.rows[0];
+}
+
+export async function getNotesByUser(userId, category = null) {
+  let query = "SELECT * FROM creative_notes WHERE user_id = $1";
+  const params = [userId];
+  
+  if (category) {
+    query += " AND category = $2";
+    params.push(category);
+  }
+  
+  query += " ORDER BY is_pinned DESC, updated_at DESC";
+  
+  const result = await pool.query(query, params);
+  return result.rows;
+}
+
+export async function getNoteById(noteId, userId) {
+  const result = await pool.query(
+    "SELECT * FROM creative_notes WHERE id = $1 AND user_id = $2",
+    [noteId, userId]
+  );
+  return result.rows[0];
+}
+
+export async function updateNote(noteId, userId, updates) {
+  const { category, title, content, media_urls, tags, is_pinned } = updates;
+  const result = await pool.query(
+    `UPDATE creative_notes 
+     SET category = COALESCE($1, category),
+         title = COALESCE($2, title),
+         content = COALESCE($3, content),
+         media_urls = COALESCE($4, media_urls),
+         tags = COALESCE($5, tags),
+         is_pinned = COALESCE($6, is_pinned),
+         updated_at = NOW()
+     WHERE id = $7 AND user_id = $8
+     RETURNING *`,
+    [category, title, content, 
+     media_urls ? JSON.stringify(media_urls) : null,
+     tags ? JSON.stringify(tags) : null,
+     is_pinned, noteId, userId]
+  );
+  return result.rows[0];
+}
+
+export async function deleteNote(noteId, userId) {
+  await pool.query("DELETE FROM creative_notes WHERE id = $1 AND user_id = $2", [noteId, userId]);
 }
 
 export default pool;
