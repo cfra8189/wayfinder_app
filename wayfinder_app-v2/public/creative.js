@@ -104,6 +104,7 @@ function openNewNote() {
     document.getElementById("note-tags").value = "";
     document.getElementById("note-pinned").checked = false;
     document.getElementById("media-links-container").innerHTML = "";
+    document.getElementById("delete-note-btn").classList.add("hidden");
     mediaLinkCount = 0;
     document.getElementById("note-modal").classList.remove("hidden");
 }
@@ -129,7 +130,27 @@ function openEditNote(id) {
         addMediaLink(url);
     });
     
+    document.getElementById("delete-note-btn").classList.remove("hidden");
     document.getElementById("note-modal").classList.remove("hidden");
+}
+
+async function deleteNoteHandler() {
+    const id = document.getElementById("note-id").value;
+    if (!id) return;
+    
+    if (!confirm("Are you sure you want to delete this note?")) return;
+    
+    try {
+        const res = await fetch(`/api/notes/${id}`, { method: "DELETE" });
+        if (res.ok) {
+            closeModal();
+            loadNotes();
+        } else {
+            alert("Failed to delete note");
+        }
+    } catch {
+        alert("Connection error");
+    }
 }
 
 function closeModal() {

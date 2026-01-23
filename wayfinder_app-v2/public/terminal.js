@@ -98,6 +98,14 @@ async function sendCommand(cmd) {
     return;
   }
 
+  if (input === "creative" || input === "space" || input === "notes" || input === "journal") {
+    printLine("Opening your Creative Space...", ["cmd"]);
+    setTimeout(() => {
+      window.location.href = "/creative.html";
+    }, 500);
+    return;
+  }
+
   // Call backend
   const res = await fetch("/api/command", {
     method: "POST",
