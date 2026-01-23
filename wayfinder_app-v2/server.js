@@ -19,10 +19,12 @@ app.use(express.static(path.join(__dirname, "public")));
 // Example API route
 app.post("/api/command", async (req, res) => {
   const { input } = req.body;
-  if (input.toLowerCase() === "help") {
-    return res.json({ text: "Available commands: help, status, clear, echo" });
+  const cmd = input.toLowerCase().trim();
+  
+  if (cmd === "help") {
+    return res.json({ text: "SYSTEM COMMANDS:\n- help: Display this manual\n- framework: View the HTML/CSS/JS creative identity logic\n- agreements: List music industry agreement templates\n- generate [name]: Create a specific agreement (e.g., 'generate split_sheet')\n- status: Check system integrity\n- clear: Purge terminal history" });
   }
-  if (input.toLowerCase() === "status") {
+  if (cmd === "status") {
     return res.json({ text: "SYSTEM STATUS: OPTIMAL\nCORES: 128\nMEMORY: 1.2TB AVAILABLE" });
   }
   res.json({ text: `Echo: ${input}` });

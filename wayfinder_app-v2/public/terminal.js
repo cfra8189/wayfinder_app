@@ -110,4 +110,6 @@ formEl.addEventListener("submit", (e) => {
 // focus input on load
 window.addEventListener("load", () => {
   inputEl.focus();
+  printLine("WAYFINDER OS v2.0 READY.", ["cmd"]);
+  printLine("Type 'help' to see available commands.", ["muted"]);
 });
