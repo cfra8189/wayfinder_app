@@ -16,10 +16,14 @@ async function main() {
   // Email/Password Registration
   app.post("/api/auth/register", async (req: any, res) => {
     try {
-      const { email, password, firstName, lastName } = req.body;
+      const { email, password, displayName, firstName, lastName } = req.body;
 
       if (!email || !password) {
         return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      if (!displayName) {
+        return res.status(400).json({ message: "Artist or business name is required" });
       }
 
       if (password.length < 6) {
@@ -35,6 +39,7 @@ async function main() {
       const [user] = await db.insert(users).values({
         email,
         passwordHash,
+        displayName,
         firstName: firstName || null,
         lastName: lastName || null,
       }).returning();
