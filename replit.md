@@ -88,8 +88,16 @@ Preferred communication style: Simple, everyday language.
 ### Key Pages
 - `/` - Terminal interface (landing page)
 - `/dashboard.html` - User project dashboard (requires login)
+- `/creative.html` - Private creative space for notes/inspiration (requires login)
 - `/generator.html` - Agreement generator (public access)
 - `/admin.html` - Platform admin dashboard
+
+### Creative Space
+- **Private notes** - Only visible to the individual user
+- **6 Categories**: Ideas, Lyrics, Inspiration, Audio, Visual, Journal
+- **Media links** - Store URLs from Pinterest, Instagram, SoundCloud, YouTube, etc.
+- **Tags and pinning** - Organize with tags, pin important notes to top
+- **Terminal commands**: `creative`, `space`, `notes`, or `journal`
 
 ### Guided Tour
 - Auto-starts on first login (stored in localStorage)
