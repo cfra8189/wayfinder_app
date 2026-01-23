@@ -21,9 +21,56 @@ function clearConsole() {
 }
 
 async function sendCommand(cmd) {
+  const input = cmd.trim().toLowerCase();
+
   // Local instant behavior
-  if (cmd.trim().toLowerCase() === "clear") {
+  if (input === "clear") {
     clearConsole();
+    return;
+  }
+
+  if (input === "agreements") {
+    try {
+      const res = await fetch("data.json");
+      const data = await res.json();
+      printLine("Available Agreement Templates:", ["cmd"]);
+      Object.keys(data.agreements).forEach(key => {
+        printLine(`- ${key}: ${data.agreements[key].name}`);
+      });
+    } catch (err) {
+      printLine("Wayfinder: Error loading templates.", ["muted"]);
+    }
+    return;
+  }
+
+  if (input.startsWith("generate ")) {
+    const type = input.replace("generate ", "").trim();
+    try {
+      const res = await fetch("data.json");
+      const data = await res.json();
+      if (data.agreements[type]) {
+        printLine(`--- GENERATING ${data.agreements[type].name.toUpperCase()} ---`, ["cmd"]);
+        printLine(data.agreements[type].content);
+      } else {
+        printLine(`Template '${type}' not found. Type 'agreements' for list.`);
+      }
+    } catch (err) {
+      printLine("Wayfinder: Error loading templates.", ["muted"]);
+    }
+    return;
+  }
+
+  if (input === "framework") {
+    try {
+      const res = await fetch("data.json");
+      const data = await res.json();
+      printLine("Creative Identity Framework:", ["cmd"]);
+      Object.entries(data.framework).forEach(([layer, desc]) => {
+        printLine(`${layer}: ${desc}`);
+      });
+    } catch (err) {
+      printLine("Wayfinder: Error loading framework.");
+    }
     return;
   }
 

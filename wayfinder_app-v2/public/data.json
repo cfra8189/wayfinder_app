@@ -1,0 +1,29 @@
+{
+  "agreements": {
+    "split_sheet": {
+      "name": "Split Sheet Agreement",
+      "content": "SONG TITLE: _________________________\nDATE: _____________\n\n### Contributors\nWriter 1: _________________________ Contribution %: _____%\nWriter 2: _________________________ Contribution %: _____%\nProducer: _________________________ Contribution %: _____%\n\n### Ownership\nEach party owns their stated percentage of the composition and agrees to split all revenue accordingly.",
+      "category": "IP"
+    },
+    "production": {
+      "name": "Basic Production Agreement",
+      "content": "PRODUCER: LUCTHELEO\nARTIST: _________________________\nPROJECT: _________________________\nDATE: _____________\n\n### Services\nProducer agrees to provide creative development and production services for the specified project.\n\n### Ownership\n- Artist retains ownership of master recording\n- Producer retains ownership of instrumental/beat composition\n\n### Credit\nProducer credit: \"Produced by LUCTHELEO\"",
+      "category": "IP"
+    },
+    "confidentiality": {
+      "name": "Confidentiality Agreement",
+      "content": "REVERIE | RVR Creative Development Agreement\n\n### Session Confidentiality\nLUCTHELEO agrees to maintain complete confidentiality regarding all information shared during creative development sessions.\n\n### Creative Work Ownership\nAll creative works developed during sessions remain the intellectual property of the client unless otherwise specified.",
+      "category": "IP"
+    },
+    "content_release": {
+      "name": "Content Release Authorization",
+      "content": "REVERIE | RVR Content Release Authorization\n\n### Release Authorization\nI authorize the release of the described content according to the terms specified in this form.\n\n### Credit and Attribution\nProducer Credit: LUCTHELEO",
+      "category": "IP"
+    }
+  },
+  "framework": {
+    "HTML": "Foundation: Authentic creative message and purpose. The 'Why'. The face only you know.",
+    "CSS": "Presentation: Visual identity and aesthetic choices. The 'Image'. The face your loved ones know.",
+    "JS": "Function: Market operation and action. The 'Marketing'. The face the world sees."
+  }
+}
