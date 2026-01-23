@@ -35,9 +35,24 @@
       "content": "SELLER: LUCTHELEO\nBUYER: _________________________\nASSET: _________________________\n\n### Rights Transferred\nSeller transfers all rights, title, and interest in the specified asset to Buyer.",
       "category": "IP"
     },
+    "basic_license": {
+      "name": "Basic Non-Exclusive License",
+      "content": "### 1. Basic Non-Exclusive License Agreement\n**Fee:** $50 USD\n**Usage Limit:** 50,000 streams/sales\n**Deliverables:** MP3 file only\n\n**What You Get:**\n- Worldwide rights to use the beat for one song.\n- Up to 50,000 total streams/sales across all platforms\n- One official music video allowed\n- Distribution rights (digital only, up to 500 physical copies)",
+      "category": "IP"
+    },
+    "standard_license": {
+      "name": "Standard Non-Exclusive License",
+      "content": "### 2. Standard Non-Exclusive License Agreement\n**Fee:** $100 USD\n**Usage Limit:** 100,000 streams/sales\n**Deliverables:** MP3 + WAV files\n\n**What You Get:**\n- Worldwide rights to use the beat for one song.\n- Up to 100,000 total streams/sales across all platforms\n- One official music video allowed\n- Distribution rights (digital and up to 1,000 physical copies)\n\n**What I Keep:**\n- 50% of publishing rights",
+      "category": "IP"
+    },
+    "premium_license": {
+      "name": "Premium Non-Exclusive License",
+      "content": "### 3. Premium Non-Exclusive License Agreement\n**Fee:** $175 USD\n**Usage:** Unlimited streams/sales\n**Deliverables:** MP3 + WAV + Stems\n\n**What You Get:**\n- Worldwide rights to use the beat for one song.\n- Unlimited streams, sales, and performances\n- Multiple music videos allowed\n- Distribution rights (digital and physical)\n- Basic sync rights for independent projects",
+      "category": "IP"
+    },
     "coaching": {
-      "name": "Creative Coaching Agreement",
-      "content": "COACH: LUCTHELEO\nCLIENT: _________________________\n\n### Services\nCoach agrees to provide systematic creative development and coaching services.\n\n### Confidentiality\nCoach agrees to maintain complete confidentiality regarding all information shared during sessions.",
+      "name": "Creative Development Coaching",
+      "content": "### Creative Development Coaching\n**Individual Sessions:** $75 per hour\n**Package Deal:** $500 for 8 hours (save $100)\n\n**What's Covered:**\n- Song structure and arrangement fundamentals\n- Music theory basics for practical application\n- Recording techniques and studio workflow\n- Creative development and artistic direction\n- Industry knowledge and business basics",
       "category": "IP"
     }
   },
