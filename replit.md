@@ -1,8 +1,8 @@
-# The Box - Creative Asset Management Platform
+# BOX - Creative Asset Management Platform
 
 ## Overview
 
-The Box (by luctheleo.com) is a SaaS platform for independent music artists and studios to manage their creative assets, track projects from concept to publication, and protect their intellectual property. The philosophy: "In order for creators to be seen out of the box, they have to define their own box."
+BOX (by luctheleo.com) is a SaaS platform for independent music artists and studios to manage their creative assets, track projects from concept to publication, and protect their intellectual property. The philosophy: "In order for creators to be seen out of the box, they have to define their own box."
 
 The platform provides tools for:
 
@@ -28,9 +28,10 @@ The platform uses the REVERIE | RVR Creative Development framework:
 - **Build Tool**: Vite 5
 - **Routing**: Wouter (lightweight React router)
 - **State Management**: TanStack Query (React Query)
-- **UI Paradigm**: Terminal/command-line aesthetic with dark theme
-- **Styling**: Tailwind CSS with PostCSS, custom accent color (#c3f53c green)
-- **Font**: Chicago (custom TTF font), fallback to JetBrains Mono
+- **UI Paradigm**: Terminal/command-line aesthetic with light/dark mode toggle
+- **Styling**: Tailwind CSS with PostCSS, CSS variables for theme switching
+- **Fonts**: LEDLIGHT (brand name "BOX"), Chicago (body text), fallback to JetBrains Mono
+- **Theme System**: ThemeContext with localStorage persistence, CSS variables (--bg-primary, --text-primary, etc.)
 - **Logo**: box-logo.png (checkered perspective box), ltl-logo.png (LTL monogram), favicon.png
 - **Location**: `/wayfinder_app-v2/client/src/` directory
 
