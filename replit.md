@@ -43,18 +43,22 @@ The platform uses the REVERIE | RVR Creative Development framework:
 - **Creator** - Individual artists managing their own projects
 
 ### Database Schema (Drizzle ORM)
-- **users** - OAuth user accounts (id, email, firstName, lastName, profileImageUrl, role)
+- **users** - User accounts (id, email, passwordHash, displayName, firstName, lastName, profileImageUrl, emailVerified, verificationToken, verificationTokenExpires)
 - **sessions** - Express session storage for auth persistence
 - **projects** - Creative works with title, type, status, description, metadata (JSONB)
 - **creative_notes** - Private notes with category, content, mediaUrl, tags, isPinned
 
 ### API Structure
 
-**Authentication (Replit Auth):**
+**Authentication (Dual: Replit Auth + Email/Password):**
 - `GET /api/login` - Redirect to OAuth login
 - `GET /api/callback` - OAuth callback handler
 - `GET /api/logout` - End session
 - `GET /api/auth/user` - Get current authenticated user
+- `POST /api/auth/register` - Email/password registration (sends verification email)
+- `POST /api/auth/login` - Email/password login (requires verified email)
+- `GET /api/auth/verify` - Email verification endpoint
+- `POST /api/auth/resend-verification` - Resend verification email
 
 **Projects:**
 - `GET /api/projects` - List user's projects
@@ -107,6 +111,7 @@ The platform uses the REVERIE | RVR Creative Development framework:
 - **passport** - Authentication middleware
 - **pg** - PostgreSQL client
 - **react/react-dom** - UI framework
+- **resend** - Email sending for verification
 - **wouter** - React routing
 
 ### Dev Dependencies
@@ -125,9 +130,11 @@ The platform uses the REVERIE | RVR Creative Development framework:
 
 ## Recent Changes
 
+- **Added email verification system** using Resend integration (24-hour token expiry)
+- **Dual authentication** - OAuth via Replit Auth + email/password with verification
 - **Converted to React + TypeScript architecture** (capstone requirement)
 - **Implemented Replit Auth for OAuth** (Google, GitHub, Apple, email login)
 - **Set up Drizzle ORM** with PostgreSQL for type-safe database access
-- **Created React pages**: Landing, Dashboard, CreativeSpace, ProjectDetails, Generator
+- **Created React pages**: Landing, Dashboard, CreativeSpace, ProjectDetails, Generator, Admin
 - **Configured Vite** with proxy to backend API
 - **Terminal aesthetic** preserved with dark theme and accent colors
