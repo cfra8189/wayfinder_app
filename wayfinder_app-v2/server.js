@@ -61,7 +61,10 @@ app.post("/api/command", async (req, res) => {
   const cmd = input.toLowerCase().trim();
   
   if (cmd === "help") {
-    return res.json({ text: "SYSTEM COMMANDS:\n- help: Display this manual\n- framework: View the HTML/CSS/JS creative identity logic\n- agreements: List music industry agreement templates\n- generate [name]: Create a specific agreement (e.g., 'generate split_sheet')\n- status: Check system integrity\n- clear: Purge terminal history\n- admin: Access admin dashboard" });
+    return res.json({ text: "SYSTEM COMMANDS:\n- help: Display this manual\n- framework: View the HTML/CSS/JS creative identity logic\n- agreements: List music industry agreement templates\n- generator: Open agreement generator (fill prompts + download PDF)\n- status: Check system integrity\n- clear: Purge terminal history\n- admin: Access admin dashboard" });
+  }
+  if (cmd === "generator" || cmd === "generate") {
+    return res.json({ text: "AGREEMENT GENERATOR: Navigate to /generator.html to create and download agreements.", redirect: "/generator.html" });
   }
   if (cmd === "admin") {
     return res.json({ text: "ADMIN ACCESS: Navigate to /admin.html to access the dashboard." });
