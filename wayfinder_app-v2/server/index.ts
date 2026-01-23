@@ -198,12 +198,16 @@ async function main() {
         });
       }
 
-      req.session.userId = user.id;
-      req.session.user = {
-        claims: { sub: user.id },
+      // Set session with expires_at for compatibility with auth middleware
+      const expiresAt = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60); // 1 week from now
+      req.session.passport = {
+        user: {
+          claims: { sub: user.id },
+          expires_at: expiresAt,
+        }
       };
-
-      console.log("Login successful for:", email);
+      
+      console.log("Login successful for:", email, "session set");
       res.json({ success: true, user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName } });
     } catch (error) {
       console.error("Login error:", error);
