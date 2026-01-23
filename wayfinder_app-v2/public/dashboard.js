@@ -1,0 +1,276 @@
+let currentUser = null;
+let projects = [];
+let currentFilter = "all";
+
+async function checkAuth() {
+    try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+            const data = await res.json();
+            currentUser = data.user;
+            return true;
+        }
+    } catch {}
+    return false;
+}
+
+function showDashboard() {
+    document.getElementById("auth-screen").classList.add("hidden");
+    document.getElementById("dashboard").classList.remove("hidden");
+    document.getElementById("user-name").textContent = currentUser.name;
+    loadProjects();
+}
+
+function showAuthScreen() {
+    document.getElementById("auth-screen").classList.remove("hidden");
+    document.getElementById("dashboard").classList.add("hidden");
+}
+
+function showLogin() {
+    document.getElementById("login-form-container").classList.remove("hidden");
+    document.getElementById("register-form-container").classList.add("hidden");
+}
+
+function showRegister() {
+    document.getElementById("login-form-container").classList.add("hidden");
+    document.getElementById("register-form-container").classList.remove("hidden");
+}
+
+function showError(msg) {
+    const el = document.getElementById("auth-error");
+    el.textContent = msg;
+    el.classList.remove("hidden");
+}
+
+function hideError() {
+    document.getElementById("auth-error").classList.add("hidden");
+}
+
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideError();
+    
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
+    
+    try {
+        const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            currentUser = data.user;
+            showDashboard();
+        } else {
+            showError(data.error || "Login failed");
+        }
+    } catch {
+        showError("Connection error");
+    }
+});
+
+document.getElementById("register-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideError();
+    
+    const name = document.getElementById("reg-name").value;
+    const email = document.getElementById("reg-email").value;
+    const password = document.getElementById("reg-password").value;
+    const role = document.getElementById("reg-role").value;
+    const businessName = document.getElementById("reg-business").value;
+    
+    try {
+        const res = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password, role, businessName })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            currentUser = data.user;
+            showDashboard();
+        } else {
+            showError(data.error || "Registration failed");
+        }
+    } catch {
+        showError("Connection error");
+    }
+});
+
+async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    currentUser = null;
+    projects = [];
+    showAuthScreen();
+}
+
+async function loadProjects() {
+    try {
+        const res = await fetch("/api/projects");
+        const data = await res.json();
+        projects = data.projects || [];
+        renderProjects();
+        updateStats();
+    } catch {
+        console.error("Failed to load projects");
+    }
+}
+
+function updateStats() {
+    document.getElementById("stat-total").textContent = projects.length;
+    document.getElementById("stat-concept").textContent = projects.filter(p => p.status === "concept").length;
+    document.getElementById("stat-development").textContent = projects.filter(p => p.status === "development").length;
+    document.getElementById("stat-published").textContent = projects.filter(p => p.status === "published").length;
+}
+
+function filterProjects(status) {
+    currentFilter = status;
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.classList.remove("bg-gray-800");
+        btn.classList.add("bg-gray-900");
+    });
+    document.querySelector(`[data-filter="${status}"]`).classList.remove("bg-gray-900");
+    document.querySelector(`[data-filter="${status}"]`).classList.add("bg-gray-800");
+    renderProjects();
+}
+
+function renderProjects() {
+    const container = document.getElementById("projects-list");
+    let filtered = projects;
+    
+    if (currentFilter !== "all") {
+        filtered = projects.filter(p => p.status === currentFilter);
+    }
+    
+    if (filtered.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-8">No projects found</p>';
+        return;
+    }
+    
+    container.innerHTML = filtered.map(p => {
+        const meta = p.metadata || {};
+        return `
+            <div class="card p-4 rounded-lg cursor-pointer hover:border-gray-600" onclick="openEditProject(${p.id})">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <span class="status-${p.status} px-2 py-1 rounded text-xs uppercase">${p.status}</span>
+                        <div>
+                            <p class="font-bold">${p.title}</p>
+                            <p class="text-xs text-gray-500">${p.type} ${meta.release_date ? '| Release: ' + meta.release_date : ''}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="text-right text-xs text-gray-500">
+                            ${meta.isrc ? '<span class="block">ISRC: ' + meta.isrc + '</span>' : ''}
+                            ${meta.copyright ? '<span class="block">CR: ' + meta.copyright + '</span>' : ''}
+                        </div>
+                        <button onclick="event.stopPropagation(); deleteProjectHandler(${p.id})" class="text-gray-600 hover:text-red-400 text-sm">Delete</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+function openNewProject() {
+    document.getElementById("modal-title").textContent = "New Project";
+    document.getElementById("project-id").value = "";
+    document.getElementById("project-title").value = "";
+    document.getElementById("project-type").value = "single";
+    document.getElementById("project-status").value = "concept";
+    document.getElementById("project-description").value = "";
+    document.getElementById("meta-isrc").value = "";
+    document.getElementById("meta-upc").value = "";
+    document.getElementById("meta-copyright").value = "";
+    document.getElementById("meta-release-date").value = "";
+    document.getElementById("project-modal").classList.remove("hidden");
+}
+
+function openEditProject(id) {
+    const project = projects.find(p => p.id === id);
+    if (!project) return;
+    
+    const meta = project.metadata || {};
+    
+    document.getElementById("modal-title").textContent = "Edit Project";
+    document.getElementById("project-id").value = project.id;
+    document.getElementById("project-title").value = project.title;
+    document.getElementById("project-type").value = project.type;
+    document.getElementById("project-status").value = project.status;
+    document.getElementById("project-description").value = project.description || "";
+    document.getElementById("meta-isrc").value = meta.isrc || "";
+    document.getElementById("meta-upc").value = meta.upc || "";
+    document.getElementById("meta-copyright").value = meta.copyright || "";
+    document.getElementById("meta-release-date").value = meta.release_date || "";
+    document.getElementById("project-modal").classList.remove("hidden");
+}
+
+function closeModal() {
+    document.getElementById("project-modal").classList.add("hidden");
+}
+
+document.getElementById("project-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    
+    const id = document.getElementById("project-id").value;
+    const projectData = {
+        title: document.getElementById("project-title").value,
+        type: document.getElementById("project-type").value,
+        status: document.getElementById("project-status").value,
+        description: document.getElementById("project-description").value,
+        metadata: {
+            isrc: document.getElementById("meta-isrc").value || null,
+            upc: document.getElementById("meta-upc").value || null,
+            copyright: document.getElementById("meta-copyright").value || null,
+            release_date: document.getElementById("meta-release-date").value || null
+        }
+    };
+    
+    try {
+        const url = id ? `/api/projects/${id}` : "/api/projects";
+        const method = id ? "PUT" : "POST";
+        
+        const res = await fetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(projectData)
+        });
+        
+        if (res.ok) {
+            closeModal();
+            loadProjects();
+        } else {
+            alert("Failed to save project");
+        }
+    } catch {
+        alert("Connection error");
+    }
+});
+
+async function deleteProjectHandler(id) {
+    if (!confirm("Are you sure you want to delete this project?")) return;
+    
+    try {
+        const res = await fetch(`/api/projects/${id}`, { method: "DELETE" });
+        if (res.ok) {
+            loadProjects();
+        }
+    } catch {
+        alert("Failed to delete project");
+    }
+}
+
+(async () => {
+    const isAuth = await checkAuth();
+    if (isAuth) {
+        showDashboard();
+    } else {
+        showAuthScreen();
+    }
+})();

@@ -1,14 +1,18 @@
-# WayfinderOS - REVERIE Creative Development Platform
+# WayfinderOS - Creative Asset Management Platform
 
 ## Overview
 
-WayfinderOS is a terminal-style web application that serves as a creative development assistant for LUCTHELEO's REVERIE | RVR creative consultancy. The platform implements a unique "HTML/CSS/JS" metaphorical framework for artist development:
+WayfinderOS is a SaaS platform for independent music artists and studios to manage their creative assets, track projects from concept to publication, and protect their intellectual property. The platform provides tools for:
 
+- **Project Tracking** - Track work from concept through development to published
+- **Metadata Management** - Store ISRC, UPC, copyright registration numbers
+- **Agreement Generation** - Create and download professional music industry agreements
+- **Documentation** - Store important documents for each project
+
+The platform uses the REVERIE | RVR Creative Development framework:
 - **HTML** = Core identity (the authentic self, purpose, the "why")
 - **CSS** = Presentation (visual identity, aesthetics, brand image)
 - **JS** = Function (market operation, how work reaches audiences)
-
-The application provides a command-line interface for accessing creative development tools, agreement templates, session tracking, and client management resources. The philosophy is "No ego. Just work." - focused on systematic transformation of creative concepts into organized, documented results.
 
 ## User Preferences
 
@@ -18,67 +22,99 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend Architecture
 - **Pattern**: Static HTML/CSS/JS served from Express
-- **UI Paradigm**: Terminal/command-line aesthetic with CRT visual effects
-- **Styling**: Custom CSS with retro terminal styling, scanlines overlay, and accent colors (#c3f53c green)
-- **Location**: `/public` directory contains all frontend assets
+- **UI Paradigm**: Terminal/command-line aesthetic with dark theme
+- **Styling**: Tailwind CSS (CDN) with custom accent colors (#c3f53c green)
+- **Location**: `/wayfinder_app-v2/public` directory contains all frontend assets
 
 ### Backend Architecture
-- **Framework**: Express.js (v5.x) with ES modules
-- **Pattern**: Simple REST API with static file serving
-- **Entry Point**: `server.js` serves both API routes and static files
+- **Framework**: Express.js with ES modules
+- **Database**: PostgreSQL for persistent storage
+- **Authentication**: Session-based with bcrypt password hashing
+- **Entry Point**: `server.js` serves API routes and static files
 - **Port**: 5000
 
+### User Roles
+- **Creator** - Individual artists managing their own projects
+- **Studio** - Business accounts that can manage clients and their projects
+- **Platform Admin** - Access via ADMIN_PASSWORD for system administration
+
+### Database Schema
+- **users** - User accounts with email, password_hash, name, role, business_name
+- **projects** - Creative works with title, type, status, description, metadata (JSONB)
+- **project_documents** - Documents attached to projects (agreements, copyright registrations)
+- **studio_clients** - Clients managed by studio accounts
+
 ### API Structure
-- `POST /api/command` - Processes terminal commands (help, status, generator, admin, etc.)
-- `POST /api/admin/login` - Admin authentication with session management
+
+**Authentication:**
+- `POST /api/auth/register` - Create new account
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/me` - Get current user
+
+**Projects:**
+- `GET /api/projects` - List user's projects
+- `POST /api/projects` - Create new project
+- `GET /api/projects/:id` - Get project details
+- `PUT /api/projects/:id` - Update project
+- `DELETE /api/projects/:id` - Delete project
+- `GET /api/projects/:id/documents` - Get project documents
+- `POST /api/projects/:id/documents` - Add document to project
+
+**Studio (role-restricted):**
+- `GET /api/studio/clients` - List studio's clients
+- `POST /api/studio/clients` - Add new client
+
+**Admin:**
+- `POST /api/admin/login` - Admin authentication
 - `POST /api/admin/logout` - End admin session
-- `GET /api/admin/check` - Verify admin authentication status
-- Static JSON data store at `/public/data.json` for templates and framework definitions
+- `GET /api/admin/check` - Check admin status
+
+**Terminal:**
+- `POST /api/command` - Process terminal commands
+
+### Project Status Workflow
+1. **Concept** - Initial idea stage
+2. **Development** - Active work in progress
+3. **Review** - Ready for review/approval
+4. **Published** - Released and monetizable
 
 ### Agreement Generator
-- **Location**: `/generator.html` - Client-facing agreement creation tool
+- **Location**: `/generator.html`
 - **3-Step Flow**: Select agreement type → Fill in details → View/Download
-- **PDF Export**: Client-side PDF generation using jsPDF library
+- **PDF Export**: Client-side PDF generation using jsPDF
 - **11 Agreement Types**: Split sheets, licenses (basic/standard/premium), production, confidentiality, content release, exclusive license, buyout, coaching
 
-### Data Storage
-- **Current**: File-based JSON (`data.json`) containing agreement templates and framework definitions
-- **Admin Data**: Client/session data stored in localStorage (prototype phase)
-- **No Database**: Simple prototype without persistent server-side storage
-- **Client Data Model**: Conceptual folder structure for clients (session docs, brand documents, IP folders)
-
-### Key Design Decisions
-
-1. **Terminal UI over Traditional GUI**
-   - Chosen for distinctive brand identity and developer-friendly aesthetic
-   - Aligns with the systematic, "code-like" approach to creative development
-   - Provides focused, distraction-free interaction
-
-2. **ES Modules**
-   - Modern JavaScript with `"type": "module"` in package.json
-   - Clean import/export syntax throughout
-
-3. **Static Data Files**
-   - Agreement templates stored as JSON for easy updates
-   - No database complexity for prototype phase
-   - Templates include: Split Sheets, Production Agreements, Confidentiality, Content Release
+### Key Pages
+- `/` - Terminal interface (landing page)
+- `/dashboard.html` - User project dashboard (requires login)
+- `/generator.html` - Agreement generator (public access)
+- `/admin.html` - Platform admin dashboard
 
 ## External Dependencies
 
 ### Runtime Dependencies
-- **express** (v4.19.2) - Web server framework
-- **dotenv** (v17.2.1) - Environment variable management
-- **openai** (v5.12.2) - OpenAI API integration (prepared but not actively used in current routes)
-
-### External Services
-- **OpenAI API** - Intended for AI-powered responses (API key expected via environment variables)
-- **Tailwind CSS** - Loaded via CDN for utility classes
-
-### Environment Variables Required
-- `ADMIN_PASSWORD` - Required for admin dashboard access
-- `SESSION_SECRET` - Optional, auto-generated if not provided
-- OpenAI API key (for future AI integration)
+- **express** - Web server framework
+- **express-session** - Session management
+- **pg** - PostgreSQL client
+- **bcryptjs** - Password hashing
+- **dotenv** - Environment variable management
 
 ### Frontend Resources
 - **Tailwind CSS CDN** - Utility-first CSS framework
+- **jsPDF CDN** - Client-side PDF generation
 - **JetBrains Mono** - Monospace font for terminal aesthetic
+
+### Environment Variables Required
+- `DATABASE_URL` - PostgreSQL connection string (auto-configured)
+- `ADMIN_PASSWORD` - Required for platform admin access
+- `SESSION_SECRET` - Optional, auto-generated if not provided
+
+## Recent Changes
+
+- Added PostgreSQL database with users, projects, and documents tables
+- Implemented user registration/login with bcrypt password hashing
+- Created project tracker with status workflow and metadata storage
+- Added role-based system (creator vs studio accounts)
+- Built user dashboard for project management
+- Added studio client management API endpoints
