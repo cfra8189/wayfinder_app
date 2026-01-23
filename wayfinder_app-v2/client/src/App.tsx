@@ -19,9 +19,7 @@ function App() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center text-black font-bold text-xl mx-auto mb-4 animate-pulse">
-            W
-          </div>
+          <img src="/box-logo.png" alt="BOX" className="w-12 h-12 mx-auto mb-4 animate-pulse" />
           <p className="text-gray-500">Loading...</p>
         </div>
       </div>

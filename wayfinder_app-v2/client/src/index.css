@@ -9,40 +9,84 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'LEDLIGHT';
+  src: url('./assets/fonts/LEDLIGHT.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.brand-font {
+  font-family: 'LEDLIGHT', sans-serif;
+}
+
 * {
   font-family: 'Chicago', 'JetBrains Mono', monospace;
 }
 
-body {
-  background: #0a0a0a;
+:root {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111111;
+  --bg-tertiary: #1a1a1a;
+  --text-primary: #ffffff;
+  --text-secondary: #999999;
+  --text-muted: #666666;
+  --border-color: #333333;
+  --accent: #ffffff;
 }
 
+:root.light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #e5e5e5;
+  --text-primary: #000000;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --border-color: #cccccc;
+  --accent: #000000;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.bg-theme-primary { background: var(--bg-primary); }
+.bg-theme-secondary { background: var(--bg-secondary); }
+.bg-theme-tertiary { background: var(--bg-tertiary); }
+.text-theme-primary { color: var(--text-primary); }
+.text-theme-secondary { color: var(--text-secondary); }
+.text-theme-muted { color: var(--text-muted); }
+.border-theme { border-color: var(--border-color); }
+
 .accent {
-  color: #ffffff;
+  color: var(--accent);
 }
 
 .btn-primary {
-  background: #ffffff;
-  color: #000000;
+  background: var(--text-primary);
+  color: var(--bg-primary);
 }
 
 .btn-primary:hover {
-  background: #e5e5e5;
+  opacity: 0.9;
 }
 
 .input-field {
-  background: #111;
-  border: 1px solid #333;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
 }
 
 .input-field:focus {
-  border-color: #ffffff;
+  border-color: var(--accent);
   outline: none;
 }
 
 .card {
-  background: #111;
-  border: 1px solid #222;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
 }
 
 .status-concept { background: #374151; }

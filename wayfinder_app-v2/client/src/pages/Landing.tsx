@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Landing() {
   const queryClient = useQueryClient();
+  const { theme, toggleTheme } = useTheme();
   const [mode, setMode] = useState<"login" | "register" | "verify">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -122,11 +124,11 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen flex">
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-900 via-gray-800 to-black p-12 flex-col justify-between">
+      <div className="hidden lg:flex lg:w-1/2 bg-theme-secondary p-12 flex-col justify-between">
         <div>
           <div className="flex items-center gap-3 mb-16">
-            <img src="/box-logo.png" alt="The Box" className="w-10 h-10" />
-            <span className="text-xl font-bold">The Box</span>
+            <img src="/box-logo.png" alt="BOX" className="w-10 h-10" />
+            <span className="text-2xl brand-font tracking-wider">BOX</span>
           </div>
           <h1 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
             Your Creative Work,{" "}
@@ -137,23 +139,31 @@ export default function Landing() {
           </p>
         </div>
         <div className="text-gray-600 text-sm">
-          <p>&copy; 2026 The Box by luctheleo.com | REVERIE | RVR Creative Development</p>
+          <p>&copy; 2026 BOX by luctheleo.com | REVERIE | RVR Creative Development</p>
         </div>
       </div>
 
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="max-w-md w-full">
           <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-            <img src="/box-logo.png" alt="The Box" className="w-10 h-10" />
-            <span className="text-xl font-bold">The Box</span>
+            <img src="/box-logo.png" alt="BOX" className="w-10 h-10" />
+            <span className="text-2xl brand-font tracking-wider">BOX</span>
           </div>
+          
+          <button
+            onClick={toggleTheme}
+            className="absolute top-4 right-4 p-2 rounded-lg bg-theme-secondary border border-theme text-theme-secondary hover:text-theme-primary transition-colors"
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
 
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold mb-2">
               {mode === "login" ? "Welcome Back" : "Create Account"}
             </h2>
             <p className="text-gray-400">
-              {mode === "login" ? "Sign in to manage your creative assets" : "Join The Box today"}
+              {mode === "login" ? "Sign in to manage your creative assets" : "Join BOX today"}
             </p>
           </div>
 

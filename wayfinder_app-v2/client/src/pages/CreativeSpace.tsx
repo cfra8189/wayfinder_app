@@ -105,9 +105,9 @@ export default function CreativeSpace() {
       <header className="border-b border-gray-800 p-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-gray-500 hover:text-white">&larr;</Link>
-            <img src="/box-logo.png" alt="The Box" className="w-8 h-8" />
-            <span className="text-white font-bold">CREATIVE SPACE</span>
+            <Link href="/" className="text-theme-secondary hover:text-theme-primary">&larr;</Link>
+            <img src="/box-logo.png" alt="BOX" className="w-8 h-8" />
+            <span className="text-xl brand-font tracking-wider">BOX</span>
           </div>
           <div className="flex items-center gap-2">
             {user?.profileImageUrl && (

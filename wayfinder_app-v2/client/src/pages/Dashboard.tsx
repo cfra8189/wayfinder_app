@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/use-auth";
+import { useTheme } from "../context/ThemeContext";
 import { Link } from "wouter";
 
 interface Project {
@@ -15,6 +16,7 @@ interface Project {
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -99,26 +101,33 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-gray-800 p-4">
+      <header className="border-b border-theme p-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/box-logo.png" alt="The Box" className="w-8 h-8" />
-            <span className="text-white font-bold">THE BOX</span>
+            <img src="/box-logo.png" alt="BOX" className="w-8 h-8" />
+            <span className="text-xl brand-font tracking-wider">BOX</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/creative" className="text-gray-500 hover:text-white text-sm">
+            <Link href="/creative" className="text-theme-secondary hover:text-theme-primary text-sm">
               Creative Space
             </Link>
-            <Link href="/generator" className="text-gray-500 hover:text-white text-sm">
+            <Link href="/generator" className="text-theme-secondary hover:text-theme-primary text-sm">
               Agreements
             </Link>
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg bg-theme-secondary text-theme-secondary hover:text-theme-primary transition-colors"
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {theme === "dark" ? "☀️" : "🌙"}
+            </button>
             <div className="flex items-center gap-2">
               {user?.profileImageUrl && (
                 <img src={user.profileImageUrl} alt="" className="w-6 h-6 rounded-full" />
               )}
-              <span className="text-sm text-gray-400">{user?.firstName || user?.email}</span>
+              <span className="text-sm text-theme-secondary">{user?.firstName || user?.email}</span>
             </div>
-            <a href="/api/logout" className="text-gray-500 hover:text-red-400 text-sm">
+            <a href="/api/logout" className="text-theme-secondary hover:text-red-400 text-sm">
               Logout
             </a>
           </div>
