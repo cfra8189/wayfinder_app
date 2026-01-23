@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Landing() {
+  const queryClient = useQueryClient();
   const [mode, setMode] = useState<"login" | "register" | "verify">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,7 +50,9 @@ export default function Landing() {
         return;
       }
 
-      window.location.href = "/";
+      // Invalidate and refetch auth state, then redirect
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      window.location.reload();
     } catch (err) {
       setError("Failed to connect. Please try again.");
     } finally {
