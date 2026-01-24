@@ -451,7 +451,7 @@ export default function CreativeSpace() {
                     </button>
                   </div>
                 </div>
-                <p className="text-sm whitespace-pre-wrap mb-3">{note.content}</p>
+                <p className="text-sm whitespace-pre-wrap mb-3 text-theme-primary">{note.content}</p>
                 {note.media_url && getMediaEmbed(note.media_url)}
                 {note.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1">

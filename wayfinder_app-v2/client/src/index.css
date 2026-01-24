@@ -94,6 +94,7 @@ body {
   border: 2px solid var(--border-color);
   box-shadow: var(--card-shadow);
   transition: box-shadow 120ms linear, transform 120ms linear;
+  color: var(--text-primary);
 }
 
 .card:hover {
