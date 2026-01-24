@@ -13,7 +13,15 @@ export default function Header({ showNav = true }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [location] = useLocation();
 
-  const navLinks = [
+  const isStudio = user?.role === "studio";
+  
+  const navLinks = isStudio ? [
+    { href: "/", label: "Dashboard" },
+    { href: "/studio", label: "Studio" },
+    { href: "/community", label: "Community" },
+    { href: "/docs", label: "Docs" },
+    { href: "/settings", label: "Settings" },
+  ] : [
     { href: "/", label: "Dashboard" },
     { href: "/creative", label: "Creative Space" },
     { href: "/community", label: "Community" },

@@ -44,12 +44,14 @@ The platform uses the REVERIE | RVR Creative Development framework:
 - **API Port**: 3000 (proxied through Vite on 5000)
 
 ### User Roles
-- **Creator** - Individual artists managing their own projects
+- **Artist** - Individual artists managing their own projects, creative space, and agreements
+- **Studio** - Business accounts that manage artist rosters, curate portfolios, and feature client work
 
 ### Database Schema (Drizzle ORM)
-- **users** - User accounts (id, email, passwordHash, displayName, firstName, lastName, profileImageUrl, emailVerified, verificationToken, verificationTokenExpires)
+- **users** - User accounts (id, email, passwordHash, displayName, firstName, lastName, profileImageUrl, role, businessName, businessBio, emailVerified, verificationToken, verificationTokenExpires)
 - **sessions** - Express session storage for auth persistence
-- **projects** - Creative works with title, type, status, description, metadata (JSONB)
+- **projects** - Creative works with title, type, status, description, metadata (JSONB), isFeatured
+- **studio_artists** - Studio-artist relationships (studioId, artistId, status, inviteEmail, acceptedAt)
 - **creative_notes** - Private notes with category, content, mediaUrl, tags, isPinned, sortOrder
 - **shared_content** - Community sharing submissions (noteId, userId, status, adminNotes, approvedAt)
 - **community_favorites** - User favorites on shared content
@@ -97,6 +99,16 @@ The platform uses the REVERIE | RVR Creative Development framework:
 - `POST /api/admin/blog` - Create blog post from shared content
 - `GET /api/blog` - Get published blog posts
 
+**Studio (role: studio):**
+- `GET /api/studio/artists` - Get studio's artist roster
+- `POST /api/studio/invite` - Invite artist by email
+- `GET /api/studio/artists/:artistId/projects` - Get artist's projects
+- `POST /api/studio/projects/:projectId/feature` - Toggle project featured status
+- `DELETE /api/studio/artists/:relationId` - Remove artist from roster
+- `GET /api/portfolio/:studioId` - Get public studio portfolio
+- `GET /api/artist/invitations` - Get pending studio invitations (for artists)
+- `POST /api/studio/invitations/:invitationId/accept` - Accept studio invitation
+
 ### Project Status Workflow
 1. **Concept** - Initial idea stage
 2. **Development** - Active work in progress
@@ -108,9 +120,12 @@ The platform uses the REVERIE | RVR Creative Development framework:
 - `/creative` - Creative Space for notes and inspiration
 - `/project/:id` - Project details with IP protection workflow
 - `/generator` - Agreement generator
-- `/settings` - User settings with password change
+- `/settings` - User settings with password change and display name editing
 - `/community` - Public community page showing approved shared content
 - `/admin` - Admin panel for reviewing submissions and managing users
+- `/studio` - Studio Dashboard for managing artist roster and curating portfolio
+- `/portfolio/:id` - Public studio portfolio page showing roster and featured work
+- `/docs` - Documentation for copyrights, global identifiers, PROs, and IP workflow
 
 ### IP Protection Workflow (6 Steps)
 1. **Fix Your Work** - Record/document in tangible form (FREE)
@@ -156,6 +171,12 @@ The platform uses the REVERIE | RVR Creative Development framework:
 
 ## Recent Changes
 
+- **Added role-based user system** - Artists and Studios with different dashboards and features
+- **Added Studio Dashboard** - Manage artist roster, invite artists, curate portfolio
+- **Added Portfolio page** - Public business portfolio showing roster and featured work
+- **Added Docs page** - Comprehensive documentation for copyrights, PROs, identifiers, and IP workflow
+- **Added progress bar** - Visual progress tracking for IP protection workflow on project details
+- **Added responsive Header component** - Hamburger menu for mobile, role-based navigation
 - **Added Settings page** with password change for email/password users
 - **Added Community sharing system** - Users can share notes for admin approval, then visible to public with favorites and comments
 - **Added Admin submissions tab** - Review pending submissions, approve/reject

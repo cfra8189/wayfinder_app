@@ -1,21 +1,32 @@
-import { pgTable, serial, varchar, text, timestamp, jsonb, integer } from "drizzle-orm/pg-core";
+import { pgTable, serial, varchar, text, timestamp, jsonb, integer, boolean } from "drizzle-orm/pg-core";
 import { users } from "./auth";
 
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   type: varchar("type", { length: 50 }).notNull().default("single"),
   status: varchar("status", { length: 50 }).notNull().default("concept"),
   description: text("description"),
   metadata: jsonb("metadata").default({}),
+  isFeatured: boolean("is_featured").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const studioArtists = pgTable("studio_artists", {
+  id: serial("id").primaryKey(),
+  studioId: integer("studio_id").notNull(),
+  artistId: integer("artist_id"),
+  status: varchar("status", { length: 20 }).notNull().default("pending"),
+  inviteEmail: varchar("invite_email"),
+  createdAt: timestamp("created_at").defaultNow(),
+  acceptedAt: timestamp("accepted_at"),
+});
+
 export const creativeNotes = pgTable("creative_notes", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull(),
   category: varchar("category", { length: 50 }).notNull().default("ideas"),
   title: varchar("title", { length: 255 }),
   content: text("content").notNull(),
@@ -66,6 +77,8 @@ export const blogPosts = pgTable("blog_posts", {
 
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = typeof projects.$inferInsert;
+export type StudioArtist = typeof studioArtists.$inferSelect;
+export type InsertStudioArtist = typeof studioArtists.$inferInsert;
 export type CreativeNote = typeof creativeNotes.$inferSelect;
 export type InsertCreativeNote = typeof creativeNotes.$inferInsert;
 export type SharedContent = typeof sharedContent.$inferSelect;
