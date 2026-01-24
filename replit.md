@@ -171,6 +171,7 @@ The platform uses the REVERIE | RVR Creative Development framework:
 
 ## Recent Changes
 
+- **Added Submission File Generator** - Export project data in CSV formats for The MLC, ASCAP/BMI, Music Reports, and SoundExchange
 - **Added BOX Code system** - Unique identifiers (BOX-XXXXXX) for users and studios to share and connect
 - **Studio code joining** - Artists can enter a studio's BOX code during registration to auto-join their network
 - **BOX code display** - Settings page shows user's code; Studio Dashboard prominently displays studio code
