@@ -6,6 +6,8 @@ interface User {
   lastName: string | null;
   profileImageUrl: string | null;
   role: string | null;
+  displayName: string | null;
+  authType: "oauth" | "email" | null;
 }
 
 async function fetchUser(): Promise<User | null> {

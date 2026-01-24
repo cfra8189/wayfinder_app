@@ -111,8 +111,14 @@ export default function Dashboard() {
             <Link href="/creative" className="text-theme-secondary hover:text-theme-primary text-xs sm:text-sm hidden sm:inline">
               Creative Space
             </Link>
+            <Link href="/community" className="text-theme-secondary hover:text-theme-primary text-xs sm:text-sm hidden sm:inline">
+              Community
+            </Link>
             <Link href="/generator" className="text-theme-secondary hover:text-theme-primary text-xs sm:text-sm hidden sm:inline">
               Agreements
+            </Link>
+            <Link href="/settings" className="text-theme-secondary hover:text-theme-primary text-xs sm:text-sm hidden sm:inline">
+              Settings
             </Link>
             <button
               onClick={toggleTheme}
@@ -139,8 +145,14 @@ export default function Dashboard() {
           <Link href="/creative" className="text-theme-secondary hover:text-theme-primary text-xs whitespace-nowrap">
             Creative Space
           </Link>
+          <Link href="/community" className="text-theme-secondary hover:text-theme-primary text-xs whitespace-nowrap">
+            Community
+          </Link>
           <Link href="/generator" className="text-theme-secondary hover:text-theme-primary text-xs whitespace-nowrap">
             Agreements
+          </Link>
+          <Link href="/settings" className="text-theme-secondary hover:text-theme-primary text-xs whitespace-nowrap">
+            Settings
           </Link>
         </div>
 

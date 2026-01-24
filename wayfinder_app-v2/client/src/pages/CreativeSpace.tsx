@@ -15,6 +15,11 @@ interface Note {
   created_at: string;
 }
 
+interface Submission {
+  noteId: number;
+  status: "pending" | "approved" | "rejected";
+}
+
 export default function CreativeSpace() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -26,6 +31,7 @@ export default function CreativeSpace() {
   const [uploadedMediaUrl, setUploadedMediaUrl] = useState<string>("");
   const [draggedNote, setDraggedNote] = useState<Note | null>(null);
   const [dragOverId, setDragOverId] = useState<number | null>(null);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { uploadFile, isUploading, progress } = useUpload({
@@ -41,6 +47,7 @@ export default function CreativeSpace() {
 
   useEffect(() => {
     loadNotes();
+    loadSubmissions();
   }, []);
 
   async function loadNotes() {
@@ -55,6 +62,42 @@ export default function CreativeSpace() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function loadSubmissions() {
+    try {
+      const res = await fetch("/api/community/my-submissions");
+      if (res.ok) {
+        const data = await res.json();
+        setSubmissions(data.submissions || []);
+      }
+    } catch (error) {
+      console.error("Failed to load submissions:", error);
+    }
+  }
+
+  async function shareNote(noteId: number) {
+    try {
+      const res = await fetch("/api/community/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ noteId }),
+      });
+      if (res.ok) {
+        loadSubmissions();
+        alert("Note submitted for community sharing! It will be visible once approved.");
+      } else {
+        const data = await res.json();
+        alert(data.message || "Failed to submit");
+      }
+    } catch (error) {
+      console.error("Failed to share note:", error);
+    }
+  }
+
+  function getSubmissionStatus(noteId: number): string | null {
+    const sub = submissions.find(s => s.noteId === noteId);
+    return sub?.status || null;
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -362,7 +405,28 @@ export default function CreativeSpace() {
                     <span className="text-xs text-theme-muted uppercase">{note.category}</span>
                     {note.is_pinned && <span className="text-xs text-accent">[pinned]</span>}
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 items-center">
+                    {(() => {
+                      const status = getSubmissionStatus(note.id);
+                      if (status === "pending") {
+                        return <span className="text-xs px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-400">pending</span>;
+                      } else if (status === "approved") {
+                        return <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400">shared</span>;
+                      } else if (status === "rejected") {
+                        return <span className="text-xs px-2 py-0.5 rounded bg-red-500/20 text-red-400">declined</span>;
+                      } else {
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => shareNote(note.id)}
+                            className="text-xs px-2 py-0.5 rounded bg-theme-tertiary text-theme-secondary hover:bg-theme-secondary"
+                            title="Submit to community"
+                          >
+                            share
+                          </button>
+                        );
+                      }
+                    })()}
                     <button
                       type="button"
                       onClick={() => togglePin(note.id)}
