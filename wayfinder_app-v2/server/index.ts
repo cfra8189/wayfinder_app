@@ -5,7 +5,7 @@ import crypto from "crypto";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { db } from "./db";
-import { projects, creativeNotes, users } from "../shared/schema";
+import { projects, creativeNotes, users, sharedContent, communityFavorites, communityComments, blogPosts } from "../shared/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { sendVerificationEmail } from "./lib/email";
 
@@ -559,6 +559,301 @@ async function main() {
     } catch (error) {
       console.error("Failed to fetch stats:", error);
       res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // Community Sharing Endpoints
+  
+  // User submits a note for community sharing
+  app.post("/api/community/submit", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { noteId } = req.body;
+
+      // Verify the note belongs to the user
+      const [note] = await db.select().from(creativeNotes).where(eq(creativeNotes.id, noteId));
+      if (!note || note.userId !== userId) {
+        return res.status(404).json({ message: "Note not found" });
+      }
+
+      // Check if already submitted
+      const [existing] = await db.select().from(sharedContent).where(eq(sharedContent.noteId, noteId));
+      if (existing) {
+        return res.status(400).json({ message: "Note already submitted for sharing", status: existing.status });
+      }
+
+      // Get numeric user ID
+      const [userRecord] = await db.select({ numericId: users.id }).from(users).where(eq(users.id, userId));
+      const numericUserId = typeof userRecord?.numericId === 'number' ? userRecord.numericId : parseInt(userId);
+
+      const [submission] = await db.insert(sharedContent).values({
+        noteId,
+        userId: numericUserId,
+        status: "pending",
+      }).returning();
+
+      res.json({ submission });
+    } catch (error) {
+      console.error("Failed to submit for sharing:", error);
+      res.status(500).json({ message: "Failed to submit for sharing" });
+    }
+  });
+
+  // User gets their submission status
+  app.get("/api/community/my-submissions", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const [userRecord] = await db.select({ numericId: users.id }).from(users).where(eq(users.id, userId));
+      const numericUserId = typeof userRecord?.numericId === 'number' ? userRecord.numericId : parseInt(userId);
+
+      const submissions = await db.select().from(sharedContent).where(eq(sharedContent.userId, numericUserId));
+      res.json({ submissions });
+    } catch (error) {
+      console.error("Failed to fetch submissions:", error);
+      res.status(500).json({ message: "Failed to fetch submissions" });
+    }
+  });
+
+  // Admin: Get all pending submissions
+  app.get("/api/admin/submissions", isAdmin, async (req, res) => {
+    try {
+      const submissions = await db
+        .select({
+          id: sharedContent.id,
+          noteId: sharedContent.noteId,
+          userId: sharedContent.userId,
+          status: sharedContent.status,
+          adminNotes: sharedContent.adminNotes,
+          createdAt: sharedContent.createdAt,
+          approvedAt: sharedContent.approvedAt,
+          noteContent: creativeNotes.content,
+          noteCategory: creativeNotes.category,
+          noteMediaUrls: creativeNotes.mediaUrls,
+          noteTags: creativeNotes.tags,
+        })
+        .from(sharedContent)
+        .leftJoin(creativeNotes, eq(sharedContent.noteId, creativeNotes.id))
+        .orderBy(desc(sharedContent.createdAt));
+      res.json({ submissions });
+    } catch (error) {
+      console.error("Failed to fetch submissions:", error);
+      res.status(500).json({ message: "Failed to fetch submissions" });
+    }
+  });
+
+  // Admin: Approve or reject a submission
+  app.post("/api/admin/submissions/:id/review", isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status, adminNotes } = req.body;
+
+      if (!["approved", "rejected"].includes(status)) {
+        return res.status(400).json({ message: "Status must be 'approved' or 'rejected'" });
+      }
+
+      const [updated] = await db.update(sharedContent)
+        .set({
+          status,
+          adminNotes,
+          approvedAt: status === "approved" ? new Date() : null,
+        })
+        .where(eq(sharedContent.id, parseInt(id)))
+        .returning();
+
+      res.json({ submission: updated });
+    } catch (error) {
+      console.error("Failed to review submission:", error);
+      res.status(500).json({ message: "Failed to review submission" });
+    }
+  });
+
+  // Public: Get approved community content
+  app.get("/api/community", async (req, res) => {
+    try {
+      const approved = await db
+        .select({
+          id: sharedContent.id,
+          noteId: sharedContent.noteId,
+          userId: sharedContent.userId,
+          approvedAt: sharedContent.approvedAt,
+          noteContent: creativeNotes.content,
+          noteCategory: creativeNotes.category,
+          noteMediaUrls: creativeNotes.mediaUrls,
+          noteTags: creativeNotes.tags,
+        })
+        .from(sharedContent)
+        .leftJoin(creativeNotes, eq(sharedContent.noteId, creativeNotes.id))
+        .where(eq(sharedContent.status, "approved"))
+        .orderBy(desc(sharedContent.approvedAt));
+      
+      // Get favorites count for each
+      const result = await Promise.all(approved.map(async (item) => {
+        const favorites = await db.select().from(communityFavorites).where(eq(communityFavorites.sharedContentId, item.id));
+        const comments = await db.select().from(communityComments).where(eq(communityComments.sharedContentId, item.id));
+        return {
+          ...item,
+          favoritesCount: favorites.length,
+          commentsCount: comments.length,
+        };
+      }));
+
+      res.json({ content: result });
+    } catch (error) {
+      console.error("Failed to fetch community content:", error);
+      res.status(500).json({ message: "Failed to fetch community content" });
+    }
+  });
+
+  // Toggle favorite on shared content
+  app.post("/api/community/:id/favorite", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const sharedContentId = parseInt(req.params.id);
+
+      const [userRecord] = await db.select({ numericId: users.id }).from(users).where(eq(users.id, userId));
+      const numericUserId = typeof userRecord?.numericId === 'number' ? userRecord.numericId : parseInt(userId);
+
+      // Check if already favorited
+      const [existing] = await db.select().from(communityFavorites)
+        .where(sql`${communityFavorites.sharedContentId} = ${sharedContentId} AND ${communityFavorites.userId} = ${numericUserId}`);
+
+      if (existing) {
+        await db.delete(communityFavorites).where(eq(communityFavorites.id, existing.id));
+        res.json({ favorited: false });
+      } else {
+        await db.insert(communityFavorites).values({
+          sharedContentId,
+          userId: numericUserId,
+        });
+        res.json({ favorited: true });
+      }
+    } catch (error) {
+      console.error("Failed to toggle favorite:", error);
+      res.status(500).json({ message: "Failed to toggle favorite" });
+    }
+  });
+
+  // Add comment to shared content
+  app.post("/api/community/:id/comment", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const sharedContentId = parseInt(req.params.id);
+      const { content } = req.body;
+
+      if (!content?.trim()) {
+        return res.status(400).json({ message: "Comment content is required" });
+      }
+
+      const [userRecord] = await db.select({ numericId: users.id }).from(users).where(eq(users.id, userId));
+      const numericUserId = typeof userRecord?.numericId === 'number' ? userRecord.numericId : parseInt(userId);
+
+      const [comment] = await db.insert(communityComments).values({
+        sharedContentId,
+        userId: numericUserId,
+        content: content.trim(),
+      }).returning();
+
+      res.json({ comment });
+    } catch (error) {
+      console.error("Failed to add comment:", error);
+      res.status(500).json({ message: "Failed to add comment" });
+    }
+  });
+
+  // Get comments for shared content
+  app.get("/api/community/:id/comments", async (req, res) => {
+    try {
+      const sharedContentId = parseInt(req.params.id);
+      const comments = await db.select().from(communityComments)
+        .where(eq(communityComments.sharedContentId, sharedContentId))
+        .orderBy(desc(communityComments.createdAt));
+      res.json({ comments });
+    } catch (error) {
+      console.error("Failed to fetch comments:", error);
+      res.status(500).json({ message: "Failed to fetch comments" });
+    }
+  });
+
+  // Get user's favorites
+  app.get("/api/community/my-favorites", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const [userRecord] = await db.select({ numericId: users.id }).from(users).where(eq(users.id, userId));
+      const numericUserId = typeof userRecord?.numericId === 'number' ? userRecord.numericId : parseInt(userId);
+
+      const favorites = await db.select({ sharedContentId: communityFavorites.sharedContentId })
+        .from(communityFavorites)
+        .where(eq(communityFavorites.userId, numericUserId));
+      
+      res.json({ favoriteIds: favorites.map(f => f.sharedContentId) });
+    } catch (error) {
+      console.error("Failed to fetch favorites:", error);
+      res.status(500).json({ message: "Failed to fetch favorites" });
+    }
+  });
+
+  // Admin: Create blog post from shared content
+  app.post("/api/admin/blog", isAdmin, async (req: any, res) => {
+    try {
+      const { sharedContentId, title, content } = req.body;
+
+      if (!title || !content) {
+        return res.status(400).json({ message: "Title and content are required" });
+      }
+
+      const [post] = await db.insert(blogPosts).values({
+        sharedContentId: sharedContentId || null,
+        title,
+        content,
+        authorId: 1, // Admin user
+      }).returning();
+
+      // Update shared content with blog post reference
+      if (sharedContentId) {
+        await db.update(sharedContent)
+          .set({ blogPostId: post.id })
+          .where(eq(sharedContent.id, sharedContentId));
+      }
+
+      res.json({ post });
+    } catch (error) {
+      console.error("Failed to create blog post:", error);
+      res.status(500).json({ message: "Failed to create blog post" });
+    }
+  });
+
+  // Get all published blog posts
+  app.get("/api/blog", async (req, res) => {
+    try {
+      const posts = await db.select().from(blogPosts)
+        .where(eq(blogPosts.isPublished, "true"))
+        .orderBy(desc(blogPosts.publishedAt));
+      res.json({ posts });
+    } catch (error) {
+      console.error("Failed to fetch blog posts:", error);
+      res.status(500).json({ message: "Failed to fetch blog posts" });
+    }
+  });
+
+  // Admin: Publish/unpublish blog post
+  app.post("/api/admin/blog/:id/publish", isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const [post] = await db.select().from(blogPosts).where(eq(blogPosts.id, parseInt(id)));
+      
+      const newStatus = post.isPublished === "true" ? "false" : "true";
+      const [updated] = await db.update(blogPosts)
+        .set({
+          isPublished: newStatus,
+          publishedAt: newStatus === "true" ? new Date() : null,
+        })
+        .where(eq(blogPosts.id, parseInt(id)))
+        .returning();
+
+      res.json({ post: updated });
+    } catch (error) {
+      console.error("Failed to toggle publish:", error);
+      res.status(500).json({ message: "Failed to toggle publish" });
     }
   });
 

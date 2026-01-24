@@ -6,6 +6,8 @@ import CreativeSpace from "./pages/CreativeSpace";
 import ProjectDetails from "./pages/ProjectDetails";
 import Generator from "./pages/Generator";
 import Admin from "./pages/Admin";
+import Settings from "./pages/Settings";
+import Community from "./pages/Community";
 
 function App() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -13,6 +15,10 @@ function App() {
 
   if (location === "/admin") {
     return <Admin />;
+  }
+
+  if (location === "/community") {
+    return <Community />;
   }
 
   if (isLoading) {
@@ -36,6 +42,7 @@ function App() {
       <Route path="/creative" component={CreativeSpace} />
       <Route path="/project/:id" component={ProjectDetails} />
       <Route path="/generator" component={Generator} />
+      <Route path="/settings" component={Settings} />
       <Route>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">

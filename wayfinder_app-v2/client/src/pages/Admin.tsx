@@ -24,6 +24,20 @@ interface Stats {
   projectsByStatus: Record<string, number>;
 }
 
+interface Submission {
+  id: number;
+  noteId: number;
+  userId: number;
+  status: string;
+  adminNotes: string | null;
+  createdAt: string;
+  approvedAt: string | null;
+  noteContent: string;
+  noteCategory: string;
+  noteMediaUrls: string[];
+  noteTags: string[];
+}
+
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
@@ -32,7 +46,8 @@ export default function Admin() {
   const [users, setUsers] = useState<User[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
-  const [activeTab, setActiveTab] = useState<"overview" | "users" | "projects">("overview");
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [activeTab, setActiveTab] = useState<"overview" | "users" | "projects" | "submissions">("overview");
 
   useEffect(() => {
     checkAuth();
@@ -82,16 +97,36 @@ export default function Admin() {
 
   async function loadData() {
     try {
-      const [usersRes, projectsRes, statsRes] = await Promise.all([
+      const [usersRes, projectsRes, statsRes, submissionsRes] = await Promise.all([
         fetch("/api/admin/users"),
         fetch("/api/admin/projects"),
         fetch("/api/admin/stats"),
+        fetch("/api/admin/submissions"),
       ]);
       if (usersRes.ok) setUsers(await usersRes.json());
       if (projectsRes.ok) setProjects(await projectsRes.json());
       if (statsRes.ok) setStats(await statsRes.json());
+      if (submissionsRes.ok) {
+        const data = await submissionsRes.json();
+        setSubmissions(data.submissions || []);
+      }
     } catch (error) {
       console.error("Failed to load data:", error);
+    }
+  }
+
+  async function reviewSubmission(id: number, status: "approved" | "rejected", adminNotes?: string) {
+    try {
+      const res = await fetch(`/api/admin/submissions/${id}/review`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, adminNotes }),
+      });
+      if (res.ok) {
+        loadData();
+      }
+    } catch (error) {
+      console.error("Failed to review submission:", error);
     }
   }
 
@@ -161,7 +196,7 @@ export default function Admin() {
 
       <main className="max-w-6xl mx-auto p-6">
         <div className="flex gap-2 mb-6">
-          {(["overview", "users", "projects"] as const).map((tab) => (
+          {(["overview", "users", "projects", "submissions"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -255,6 +290,63 @@ export default function Admin() {
               ))}
               {projects.length === 0 && (
                 <p className="text-gray-500 text-center py-8">No projects yet</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "submissions" && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold">Community Submissions</h2>
+            <div className="space-y-4">
+              {submissions.map((submission) => (
+                <div key={submission.id} className="card p-6 rounded-xl">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <span className="text-xs text-gray-400 uppercase">{submission.noteCategory}</span>
+                      <span className={`ml-2 text-xs px-2 py-0.5 rounded ${
+                        submission.status === "pending" ? "bg-yellow-500/20 text-yellow-400" :
+                        submission.status === "approved" ? "bg-green-500/20 text-green-400" :
+                        "bg-red-500/20 text-red-400"
+                      }`}>
+                        {submission.status}
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {new Date(submission.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  
+                  <p className="text-sm mb-4 whitespace-pre-wrap">{submission.noteContent}</p>
+                  
+                  {submission.noteTags?.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-4">
+                      {submission.noteTags.map((tag: string, i: number) => (
+                        <span key={i} className="text-xs bg-gray-700 px-2 py-0.5 rounded">#{tag}</span>
+                      ))}
+                    </div>
+                  )}
+
+                  {submission.status === "pending" && (
+                    <div className="flex gap-2 pt-4 border-t border-gray-700">
+                      <button
+                        onClick={() => reviewSubmission(submission.id, "approved")}
+                        className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => reviewSubmission(submission.id, "rejected")}
+                        className="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+              {submissions.length === 0 && (
+                <p className="text-gray-500 text-center py-8">No submissions yet</p>
               )}
             </div>
           </div>

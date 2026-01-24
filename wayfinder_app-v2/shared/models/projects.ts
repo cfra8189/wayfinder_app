@@ -27,7 +27,49 @@ export const creativeNotes = pgTable("creative_notes", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const sharedContent = pgTable("shared_content", {
+  id: serial("id").primaryKey(),
+  noteId: integer("note_id").notNull().references(() => creativeNotes.id),
+  userId: integer("user_id").notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("pending"),
+  adminNotes: text("admin_notes"),
+  blogPostId: integer("blog_post_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  approvedAt: timestamp("approved_at"),
+});
+
+export const communityFavorites = pgTable("community_favorites", {
+  id: serial("id").primaryKey(),
+  sharedContentId: integer("shared_content_id").notNull().references(() => sharedContent.id),
+  userId: integer("user_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const communityComments = pgTable("community_comments", {
+  id: serial("id").primaryKey(),
+  sharedContentId: integer("shared_content_id").notNull().references(() => sharedContent.id),
+  userId: integer("user_id").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const blogPosts = pgTable("blog_posts", {
+  id: serial("id").primaryKey(),
+  sharedContentId: integer("shared_content_id").references(() => sharedContent.id),
+  title: varchar("title", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  authorId: integer("author_id").notNull(),
+  isPublished: varchar("is_published").default("false"),
+  createdAt: timestamp("created_at").defaultNow(),
+  publishedAt: timestamp("published_at"),
+});
+
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = typeof projects.$inferInsert;
 export type CreativeNote = typeof creativeNotes.$inferSelect;
 export type InsertCreativeNote = typeof creativeNotes.$inferInsert;
+export type SharedContent = typeof sharedContent.$inferSelect;
+export type InsertSharedContent = typeof sharedContent.$inferInsert;
+export type CommunityFavorite = typeof communityFavorites.$inferSelect;
+export type CommunityComment = typeof communityComments.$inferSelect;
+export type BlogPost = typeof blogPosts.$inferSelect;

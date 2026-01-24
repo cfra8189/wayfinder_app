@@ -50,7 +50,11 @@ The platform uses the REVERIE | RVR Creative Development framework:
 - **users** - User accounts (id, email, passwordHash, displayName, firstName, lastName, profileImageUrl, emailVerified, verificationToken, verificationTokenExpires)
 - **sessions** - Express session storage for auth persistence
 - **projects** - Creative works with title, type, status, description, metadata (JSONB)
-- **creative_notes** - Private notes with category, content, mediaUrl, tags, isPinned
+- **creative_notes** - Private notes with category, content, mediaUrl, tags, isPinned, sortOrder
+- **shared_content** - Community sharing submissions (noteId, userId, status, adminNotes, approvedAt)
+- **community_favorites** - User favorites on shared content
+- **community_comments** - User comments on shared content
+- **blog_posts** - Admin blog posts created from shared content
 
 ### API Structure
 
@@ -77,6 +81,21 @@ The platform uses the REVERIE | RVR Creative Development framework:
 - `PUT /api/creative/notes/:id` - Update note
 - `DELETE /api/creative/notes/:id` - Delete note
 - `POST /api/creative/notes/:id/pin` - Toggle pin status
+- `POST /api/creative/notes/reorder` - Reorder notes (drag and drop)
+
+**Community Sharing:**
+- `POST /api/community/submit` - Submit note for community sharing
+- `GET /api/community/my-submissions` - Get user's submission status
+- `GET /api/community` - Get all approved shared content (public)
+- `POST /api/community/:id/favorite` - Toggle favorite on shared content
+- `POST /api/community/:id/comment` - Add comment to shared content
+- `GET /api/community/:id/comments` - Get comments for shared content
+
+**Admin:**
+- `GET /api/admin/submissions` - Get all community submissions
+- `POST /api/admin/submissions/:id/review` - Approve/reject submission
+- `POST /api/admin/blog` - Create blog post from shared content
+- `GET /api/blog` - Get published blog posts
 
 ### Project Status Workflow
 1. **Concept** - Initial idea stage
@@ -89,6 +108,9 @@ The platform uses the REVERIE | RVR Creative Development framework:
 - `/creative` - Creative Space for notes and inspiration
 - `/project/:id` - Project details with IP protection workflow
 - `/generator` - Agreement generator
+- `/settings` - User settings with password change
+- `/community` - Public community page showing approved shared content
+- `/admin` - Admin panel for reviewing submissions and managing users
 
 ### IP Protection Workflow (6 Steps)
 1. **Fix Your Work** - Record/document in tangible form (FREE)
@@ -134,6 +156,13 @@ The platform uses the REVERIE | RVR Creative Development framework:
 
 ## Recent Changes
 
+- **Added Settings page** with password change for email/password users
+- **Added Community sharing system** - Users can share notes for admin approval, then visible to public with favorites and comments
+- **Added Admin submissions tab** - Review pending submissions, approve/reject
+- **Added Community page** - Public view of approved shared content with favorites/comments
+- **Improved drag-and-drop** - Notes can be reordered with immediate visual feedback
+- **Improved pin functionality** - Text-based pin/unpin button for better reliability
+- **Fixed light mode text colors** - Tailwind config now uses CSS variables for theme-aware colors
 - **Rebranded to "The Box"** from WayfinderOS with luctheleo.com domain
 - **Added Chicago custom font** - Replaced JetBrains Mono with Chicago TTF font
 - **New logos** - box-logo.png, ltl-logo.png, favicon.png
@@ -142,6 +171,6 @@ The platform uses the REVERIE | RVR Creative Development framework:
 - **Converted to React + TypeScript architecture** (capstone requirement)
 - **Implemented Replit Auth for OAuth** (Google, GitHub, Apple, email login)
 - **Set up Drizzle ORM** with PostgreSQL for type-safe database access
-- **Created React pages**: Landing, Dashboard, CreativeSpace, ProjectDetails, Generator, Admin
+- **Created React pages**: Landing, Dashboard, CreativeSpace, ProjectDetails, Generator, Admin, Settings, Community
 - **Configured Vite** with proxy to backend API
 - **Terminal aesthetic** preserved with dark theme and accent colors
