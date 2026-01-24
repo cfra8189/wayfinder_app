@@ -11,6 +11,35 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [displayName, setDisplayName] = useState(user?.firstName || user?.displayName || "");
+  const [profileMessage, setProfileMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  async function handleProfileUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    setProfileMessage(null);
+    setProfileLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/update-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ displayName }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setProfileMessage({ type: "success", text: "Profile updated successfully" });
+        window.location.reload();
+      } else {
+        setProfileMessage({ type: "error", text: data.message || "Failed to update profile" });
+      }
+    } catch (error) {
+      setProfileMessage({ type: "error", text: "Failed to update profile" });
+    } finally {
+      setProfileLoading(false);
+    }
+  }
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
@@ -82,11 +111,36 @@ export default function Settings() {
 
         <section className="card p-6 rounded-xl mb-6">
           <h2 className="text-lg font-bold mb-4 text-theme-primary">Account Information</h2>
-          <div className="space-y-2 text-theme-secondary">
+          <div className="space-y-2 text-theme-secondary mb-4">
             <p><span className="text-theme-muted">Email:</span> {user?.email || "N/A"}</p>
-            <p><span className="text-theme-muted">Display Name:</span> {user?.firstName || user?.displayName || "Not set"}</p>
             <p><span className="text-theme-muted">Account Type:</span> {user?.authType === "email" ? "Email/Password" : "OAuth"}</p>
           </div>
+
+          {profileMessage && (
+            <div className={`p-3 rounded mb-4 ${profileMessage.type === "success" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
+              {profileMessage.text}
+            </div>
+          )}
+
+          <form onSubmit={handleProfileUpdate} className="space-y-4">
+            <div>
+              <label className="block text-sm text-theme-muted mb-1">Display Name</label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="input-field w-full p-3 rounded"
+                placeholder="Enter your display name"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={profileLoading}
+              className="btn-primary py-2 px-4 rounded font-bold disabled:opacity-50"
+            >
+              {profileLoading ? "Saving..." : "Save Profile"}
+            </button>
+          </form>
         </section>
 
         {user?.authType === "email" && (
