@@ -86,3 +86,30 @@ export type InsertSharedContent = typeof sharedContent.$inferInsert;
 export type CommunityFavorite = typeof communityFavorites.$inferSelect;
 export type CommunityComment = typeof communityComments.$inferSelect;
 export type BlogPost = typeof blogPosts.$inferSelect;
+
+export const pressKits = pgTable("press_kits", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  shortBio: text("short_bio"),
+  mediumBio: text("medium_bio"),
+  longBio: text("long_bio"),
+  genre: varchar("genre", { length: 100 }),
+  location: varchar("location", { length: 255 }),
+  photoUrls: jsonb("photo_urls").default([]),
+  videoUrls: jsonb("video_urls").default([]),
+  featuredTracks: jsonb("featured_tracks").default([]),
+  achievements: jsonb("achievements").default([]),
+  pressQuotes: jsonb("press_quotes").default([]),
+  socialLinks: jsonb("social_links").default({}),
+  contactEmail: varchar("contact_email"),
+  contactName: varchar("contact_name"),
+  bookingEmail: varchar("booking_email"),
+  technicalRider: text("technical_rider"),
+  stagePlot: text("stage_plot"),
+  isPublished: boolean("is_published").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type PressKit = typeof pressKits.$inferSelect;
+export type InsertPressKit = typeof pressKits.$inferInsert;

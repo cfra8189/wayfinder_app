@@ -12,6 +12,8 @@ import Docs from "./pages/Docs";
 import StudioDashboard from "./pages/StudioDashboard";
 import Portfolio from "./pages/Portfolio";
 import SubmissionGenerator from "./pages/SubmissionGenerator";
+import EPKEditor from "./pages/EPKEditor";
+import EPKView from "./pages/EPKView";
 
 function App() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -31,6 +33,10 @@ function App() {
 
   if (location.startsWith("/portfolio/")) {
     return <Portfolio />;
+  }
+
+  if (location.startsWith("/epk/")) {
+    return <EPKView />;
   }
 
   if (isLoading) {
@@ -55,6 +61,7 @@ function App() {
       <Route path="/project/:id" component={ProjectDetails} />
       <Route path="/generator" component={Generator} />
       <Route path="/submissions" component={SubmissionGenerator} />
+      <Route path="/epk" component={EPKEditor} />
       <Route path="/settings" component={Settings} />
       <Route path="/studio" component={StudioDashboard} />
       <Route>
