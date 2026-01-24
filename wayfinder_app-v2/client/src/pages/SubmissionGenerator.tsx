@@ -24,7 +24,7 @@ interface Project {
   createdAt: string;
 }
 
-type PlatformType = "mlc" | "ascap_bmi" | "music_reports" | "soundexchange";
+type PlatformType = "mlc" | "ascap_bmi" | "music_reports" | "soundexchange" | "hfa";
 type FormatType = "csv" | "txt";
 
 interface PlatformInfo {
@@ -63,6 +63,13 @@ const PLATFORMS: Record<PlatformType, PlatformInfo> = {
     description: "Digital performance royalties for master recordings.",
     format: "csv",
     fields: ["Recording Title", "ISRC", "Artist Name", "Featured Artists", "Release Date", "Duration", "Label", "UPC"]
+  },
+  hfa: {
+    name: "Harry Fox Agency",
+    fullName: "eSong Bulk Registration Template",
+    description: "Mechanical royalties for reproductions (streaming, downloads, CDs). Excel template for bulk uploads.",
+    format: "csv",
+    fields: ["Song Title", "Writer First Name", "Writer Last Name", "Ownership Share", "ISRC", "Artist Name", "Album Title", "Publisher P#"]
   }
 };
 
@@ -127,6 +134,9 @@ export default function SubmissionGenerator() {
       case "soundexchange":
         csvContent = generateSoundExchangeFormat(selectedData);
         break;
+      case "hfa":
+        csvContent = generateHFAFormat(selectedData);
+        break;
     }
     
     return csvContent;
@@ -187,6 +197,46 @@ export default function SubmissionGenerator() {
       "",
       p.metadata?.upc || ""
     ]);
+    return [headers.join(","), ...rows.map(r => r.map(cell => `"${cell}"`).join(","))].join("\n");
+  }
+
+  function generateHFAFormat(data: Project[]): string {
+    const headers = ["Song Title", "Writer First Name", "Writer Last Name", "Ownership Share", "ISRC", "Artist Name", "Album Title", "Publisher P#"];
+    const rows: string[][] = [];
+    
+    data.forEach(p => {
+      const writers = p.metadata?.writers || [];
+      if (writers.length === 0) {
+        rows.push([
+          p.title,
+          "",
+          "",
+          "100",
+          p.metadata?.isrc || "",
+          user?.displayName || "",
+          "",
+          ""
+        ]);
+      } else {
+        const sharePerWriter = Math.floor(100 / writers.length);
+        writers.forEach((writer, i) => {
+          const nameParts = writer.trim().split(" ");
+          const firstName = nameParts[0] || "";
+          const lastName = nameParts.slice(1).join(" ") || "";
+          rows.push([
+            p.title,
+            firstName,
+            lastName,
+            String(sharePerWriter),
+            p.metadata?.isrc || "",
+            user?.displayName || "",
+            "",
+            ""
+          ]);
+        });
+      }
+    });
+    
     return [headers.join(","), ...rows.map(r => r.map(cell => `"${cell}"`).join(","))].join("\n");
   }
 
@@ -259,6 +309,21 @@ export default function SubmissionGenerator() {
             p.metadata?.duration || "-",
             p.metadata?.upc || "-"
           ])
+        };
+      case "hfa":
+        return {
+          headers: ["Song Title", "Writer First", "Writer Last", "Share", "ISRC", "Artist"],
+          rows: selectedData.flatMap(p => {
+            const writers = p.metadata?.writers || [];
+            if (writers.length === 0) {
+              return [[p.title, "-", "-", "100", p.metadata?.isrc || "-", user?.displayName || "-"]];
+            }
+            const sharePerWriter = Math.floor(100 / writers.length);
+            return writers.map(w => {
+              const parts = w.trim().split(" ");
+              return [p.title, parts[0] || "-", parts.slice(1).join(" ") || "-", String(sharePerWriter), p.metadata?.isrc || "-", user?.displayName || "-"];
+            });
+          })
         };
       default:
         return { headers: [], rows: [] };

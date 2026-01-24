@@ -181,7 +181,7 @@ The platform uses the REVERIE | RVR Creative Development framework:
 
 - **Added Electronic Press Kit (EPK) system** - Full EPK editor with biography (3 lengths), photos, videos, featured tracks, achievements, press quotes, contact info, technical rider, and stage plot
 - **EPK public view** - Professional shareable page accessible via /epk/:boxCode
-- **Added Submission File Generator** - Export project data in CSV formats for The MLC, ASCAP/BMI, Music Reports, and SoundExchange
+- **Added Submission File Generator** - Export project data in CSV formats for The MLC, ASCAP/BMI, Music Reports, SoundExchange, and Harry Fox Agency
 - **Added BOX Code system** - Unique identifiers (BOX-XXXXXX) for users and studios to share and connect
 - **Studio code joining** - Artists can enter a studio's BOX code during registration to auto-join their network
 - **BOX code display** - Settings page shows user's code; Studio Dashboard prominently displays studio code
