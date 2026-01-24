@@ -17,7 +17,8 @@ export function registerAuthRoutes(app: Express): void {
           lastName: user.lastName,
           displayName: user.displayName,
           profileImageUrl: user.profileImageUrl,
-          role: null,
+          role: user.role || "artist",
+          businessName: user.businessName || null,
           authType: user.passwordHash ? "email" : "oauth",
         });
       } else {

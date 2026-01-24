@@ -11,6 +11,8 @@ export default function Landing() {
   const [displayName, setDisplayName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [role, setRole] = useState<"artist" | "studio">("artist");
+  const [businessName, setBusinessName] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,7 +27,7 @@ export default function Landing() {
     try {
       const endpoint = mode === "register" ? "/api/auth/register" : "/api/auth/login";
       const body = mode === "register" 
-        ? { email, password, displayName, firstName, lastName }
+        ? { email, password, displayName, firstName, lastName, role, businessName: role === "studio" ? businessName : null }
         : { email, password };
 
       const res = await fetch(endpoint, {
@@ -184,13 +186,59 @@ export default function Landing() {
             {mode === "register" && (
               <>
                 <div>
-                  <label className="block text-sm text-theme-secondary mb-1">Artist / Business Name *</label>
+                  <label className="block text-sm text-theme-secondary mb-2">I am a...</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setRole("artist")}
+                      className={`p-3 rounded-lg border-2 transition-colors text-left ${
+                        role === "artist" 
+                          ? "border-accent bg-theme-tertiary" 
+                          : "border-theme-tertiary bg-theme-secondary"
+                      }`}
+                    >
+                      <p className="font-bold text-sm">Artist</p>
+                      <p className="text-xs text-theme-muted">Individual creator</p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRole("studio")}
+                      className={`p-3 rounded-lg border-2 transition-colors text-left ${
+                        role === "studio" 
+                          ? "border-accent bg-theme-tertiary" 
+                          : "border-theme-tertiary bg-theme-secondary"
+                      }`}
+                    >
+                      <p className="font-bold text-sm">Studio</p>
+                      <p className="text-xs text-theme-muted">Manage artists</p>
+                    </button>
+                  </div>
+                </div>
+
+                {role === "studio" && (
+                  <div>
+                    <label className="block text-sm text-theme-secondary mb-1">Business Name *</label>
+                    <input
+                      type="text"
+                      value={businessName}
+                      onChange={(e) => setBusinessName(e.target.value)}
+                      className="input-field w-full p-3 rounded"
+                      placeholder="Your studio or label name"
+                      required
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm text-theme-secondary mb-1">
+                    {role === "artist" ? "Artist / Stage Name *" : "Your Name *"}
+                  </label>
                   <input
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     className="input-field w-full p-3 rounded"
-                    placeholder="Your stage name or business"
+                    placeholder={role === "artist" ? "Your stage name" : "Your name"}
                     required
                   />
                 </div>

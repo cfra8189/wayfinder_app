@@ -5,8 +5,8 @@ import crypto from "crypto";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { db } from "./db";
-import { projects, creativeNotes, users, sharedContent, communityFavorites, communityComments, blogPosts } from "../shared/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { projects, creativeNotes, users, sharedContent, communityFavorites, communityComments, blogPosts, studioArtists } from "../shared/schema";
+import { eq, desc, sql, and } from "drizzle-orm";
 import { sendVerificationEmail } from "./lib/email";
 
 const app = express();
@@ -121,14 +121,18 @@ async function main() {
   // Email/Password Registration
   app.post("/api/auth/register", async (req: any, res) => {
     try {
-      const { email, password, displayName, firstName, lastName } = req.body;
+      const { email, password, displayName, firstName, lastName, role, businessName } = req.body;
 
       if (!email || !password) {
         return res.status(400).json({ message: "Email and password are required" });
       }
 
       if (!displayName) {
-        return res.status(400).json({ message: "Artist or business name is required" });
+        return res.status(400).json({ message: "Name is required" });
+      }
+
+      if (role === "studio" && !businessName) {
+        return res.status(400).json({ message: "Business name is required for studios" });
       }
 
       if (password.length < 6) {
@@ -150,6 +154,8 @@ async function main() {
         displayName,
         firstName: firstName || null,
         lastName: lastName || null,
+        role: role || "artist",
+        businessName: role === "studio" ? businessName : null,
         emailVerified: false,
         verificationToken,
         verificationTokenExpires,
@@ -879,6 +885,338 @@ async function main() {
     } catch (error) {
       console.error("Failed to toggle publish:", error);
       res.status(500).json({ message: "Failed to toggle publish" });
+    }
+  });
+
+  // Studio: Get studio's artist roster
+  app.get("/api/studio/artists", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const [user] = await db.select().from(users).where(eq(users.id, userId));
+      
+      if (user?.role !== "studio") {
+        return res.status(403).json({ message: "Studio access only" });
+      }
+
+      const relations = await db.select().from(studioArtists).where(eq(studioArtists.studioId, parseInt(userId)));
+      
+      const artistsWithInfo = await Promise.all(relations.map(async (rel) => {
+        if (rel.artistId) {
+          const [artist] = await db.select().from(users).where(eq(users.id, rel.artistId));
+          const artistProjects = await db.select().from(projects).where(eq(projects.userId, rel.artistId));
+          return {
+            id: rel.id,
+            artistId: rel.artistId,
+            inviteEmail: rel.inviteEmail,
+            status: rel.status,
+            createdAt: rel.createdAt,
+            acceptedAt: rel.acceptedAt,
+            artistName: artist?.displayName || artist?.email || "Unknown",
+            artistEmail: artist?.email,
+            projectCount: artistProjects.length,
+          };
+        }
+        return {
+          id: rel.id,
+          artistId: null,
+          inviteEmail: rel.inviteEmail,
+          status: rel.status,
+          createdAt: rel.createdAt,
+          acceptedAt: null,
+          artistName: null,
+          artistEmail: rel.inviteEmail,
+          projectCount: 0,
+        };
+      }));
+
+      res.json({ artists: artistsWithInfo });
+    } catch (error) {
+      console.error("Failed to fetch artists:", error);
+      res.status(500).json({ message: "Failed to fetch artists" });
+    }
+  });
+
+  // Studio: Invite artist by email
+  app.post("/api/studio/invite", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { email } = req.body;
+
+      const userIdNum = parseInt(userId);
+      const [user] = await db.select().from(users).where(eq(users.id, userIdNum));
+      if (user?.role !== "studio") {
+        return res.status(403).json({ message: "Studio access only" });
+      }
+
+      const [existingArtist] = await db.select().from(users).where(eq(users.email, email));
+      
+      if (existingArtist) {
+        const [existingRelation] = await db.select().from(studioArtists)
+          .where(and(
+            eq(studioArtists.studioId, userIdNum),
+            eq(studioArtists.artistId, existingArtist.id)
+          ));
+
+        if (existingRelation) {
+          return res.status(400).json({ message: "Artist already in your roster" });
+        }
+
+        await db.insert(studioArtists).values({
+          studioId: userIdNum,
+          artistId: existingArtist.id,
+          status: "pending",
+          inviteEmail: email,
+        });
+      } else {
+        const [existingInvite] = await db.select().from(studioArtists)
+          .where(and(
+            eq(studioArtists.studioId, userIdNum),
+            eq(studioArtists.inviteEmail, email)
+          ));
+
+        if (existingInvite) {
+          return res.status(400).json({ message: "Invitation already sent" });
+        }
+
+        await db.insert(studioArtists).values({
+          studioId: userIdNum,
+          artistId: null,
+          status: "pending",
+          inviteEmail: email,
+        });
+      }
+
+      res.json({ success: true, message: "Invitation sent" });
+    } catch (error) {
+      console.error("Failed to invite artist:", error);
+      res.status(500).json({ message: "Failed to invite artist" });
+    }
+  });
+
+  // Studio: Get artist's projects
+  app.get("/api/studio/artists/:artistId/projects", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { artistId } = req.params;
+      const userIdNum = parseInt(userId);
+      const artistIdNum = parseInt(artistId);
+
+      const [user] = await db.select().from(users).where(eq(users.id, userIdNum));
+      if (user?.role !== "studio") {
+        return res.status(403).json({ message: "Studio access only" });
+      }
+
+      const [relation] = await db.select().from(studioArtists)
+        .where(and(
+          eq(studioArtists.studioId, userIdNum),
+          eq(studioArtists.artistId, artistIdNum)
+        ));
+
+      if (!relation || relation.status !== "accepted") {
+        return res.status(403).json({ message: "Artist not in your roster" });
+      }
+
+      const artistProjects = await db.select().from(projects)
+        .where(eq(projects.userId, artistIdNum))
+        .orderBy(desc(projects.updatedAt));
+
+      res.json({ projects: artistProjects });
+    } catch (error) {
+      console.error("Failed to fetch artist projects:", error);
+      res.status(500).json({ message: "Failed to fetch artist projects" });
+    }
+  });
+
+  // Studio: Toggle project featured status
+  app.post("/api/studio/projects/:projectId/feature", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { projectId } = req.params;
+      const { featured } = req.body;
+      const userIdNum = parseInt(userId);
+
+      const [user] = await db.select().from(users).where(eq(users.id, userIdNum));
+      if (user?.role !== "studio") {
+        return res.status(403).json({ message: "Studio access only" });
+      }
+
+      const [project] = await db.select().from(projects).where(eq(projects.id, parseInt(projectId)));
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      const [relation] = await db.select().from(studioArtists)
+        .where(and(
+          eq(studioArtists.studioId, userIdNum),
+          eq(studioArtists.artistId, project.userId)
+        ));
+
+      if (!relation || relation.status !== "accepted") {
+        return res.status(403).json({ message: "Artist not in your roster" });
+      }
+
+      const [updated] = await db.update(projects)
+        .set({ isFeatured: featured })
+        .where(eq(projects.id, parseInt(projectId)))
+        .returning();
+
+      res.json({ project: updated });
+    } catch (error) {
+      console.error("Failed to toggle featured:", error);
+      res.status(500).json({ message: "Failed to toggle featured" });
+    }
+  });
+
+  // Studio: Remove artist from roster
+  app.delete("/api/studio/artists/:relationId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { relationId } = req.params;
+      const userIdNum = parseInt(userId);
+
+      const [user] = await db.select().from(users).where(eq(users.id, userIdNum));
+      if (user?.role !== "studio") {
+        return res.status(403).json({ message: "Studio access only" });
+      }
+
+      await db.delete(studioArtists)
+        .where(and(
+          eq(studioArtists.id, parseInt(relationId)),
+          eq(studioArtists.studioId, userIdNum)
+        ));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to remove artist:", error);
+      res.status(500).json({ message: "Failed to remove artist" });
+    }
+  });
+
+  // Public: Get studio portfolio
+  app.get("/api/portfolio/:studioId", async (req, res) => {
+    try {
+      const { studioId } = req.params;
+      const studioIdNum = parseInt(studioId);
+
+      const [studio] = await db.select().from(users).where(eq(users.id, studioIdNum));
+      if (!studio || studio.role !== "studio") {
+        return res.status(404).json({ message: "Studio not found" });
+      }
+
+      const relations = await db.select().from(studioArtists)
+        .where(and(
+          eq(studioArtists.studioId, studioIdNum),
+          eq(studioArtists.status, "accepted")
+        ));
+
+      const roster = await Promise.all(relations.map(async (rel) => {
+        if (!rel.artistId) return null;
+        const [artist] = await db.select().from(users).where(eq(users.id, rel.artistId));
+        const artistProjects = await db.select().from(projects).where(eq(projects.userId, rel.artistId));
+        return {
+          id: rel.artistId,
+          displayName: artist?.displayName || "Unknown",
+          projectCount: artistProjects.length,
+        };
+      }));
+
+      const allFeaturedProjects: any[] = [];
+      for (const rel of relations) {
+        if (!rel.artistId) continue;
+        const artistFeatured = await db.select().from(projects)
+          .where(and(
+            eq(projects.userId, rel.artistId),
+            eq(projects.isFeatured, true)
+          ));
+        const [artist] = await db.select().from(users).where(eq(users.id, rel.artistId));
+        for (const proj of artistFeatured) {
+          allFeaturedProjects.push({
+            ...proj,
+            artistName: artist?.displayName || "Unknown",
+          });
+        }
+      }
+
+      res.json({
+        studio: {
+          id: studio.id,
+          businessName: studio.businessName,
+          businessBio: studio.businessBio,
+          displayName: studio.displayName,
+        },
+        roster: roster.filter(r => r !== null),
+        featuredProjects: allFeaturedProjects,
+      });
+    } catch (error) {
+      console.error("Failed to fetch portfolio:", error);
+      res.status(500).json({ message: "Failed to fetch portfolio" });
+    }
+  });
+
+  // Artist: Accept studio invitation
+  app.post("/api/studio/invitations/:invitationId/accept", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { invitationId } = req.params;
+      const userIdNum = parseInt(userId);
+
+      const [invitation] = await db.select().from(studioArtists).where(eq(studioArtists.id, parseInt(invitationId)));
+      
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+
+      const [user] = await db.select().from(users).where(eq(users.id, userIdNum));
+      if (invitation.inviteEmail !== user?.email) {
+        return res.status(403).json({ message: "This invitation is not for you" });
+      }
+
+      const [updated] = await db.update(studioArtists)
+        .set({
+          artistId: userIdNum,
+          status: "accepted",
+          acceptedAt: new Date(),
+        })
+        .where(eq(studioArtists.id, parseInt(invitationId)))
+        .returning();
+
+      res.json({ success: true, invitation: updated });
+    } catch (error) {
+      console.error("Failed to accept invitation:", error);
+      res.status(500).json({ message: "Failed to accept invitation" });
+    }
+  });
+
+  // Artist: Get pending invitations
+  app.get("/api/artist/invitations", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const userIdNum = parseInt(userId);
+      const [user] = await db.select().from(users).where(eq(users.id, userIdNum));
+
+      if (!user?.email) {
+        return res.json({ invitations: [] });
+      }
+
+      const invitations = await db.select().from(studioArtists)
+        .where(and(
+          eq(studioArtists.inviteEmail, user.email),
+          eq(studioArtists.status, "pending")
+        ));
+
+      const invitationsWithStudio = await Promise.all(invitations.map(async (inv) => {
+        const [studio] = await db.select().from(users).where(eq(users.id, inv.studioId));
+        return {
+          id: inv.id,
+          studioName: studio?.businessName || studio?.displayName || "Unknown Studio",
+          createdAt: inv.createdAt,
+        };
+      }));
+
+      res.json({ invitations: invitationsWithStudio });
+    } catch (error) {
+      console.error("Failed to fetch invitations:", error);
+      res.status(500).json({ message: "Failed to fetch invitations" });
     }
   });
 

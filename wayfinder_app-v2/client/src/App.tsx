@@ -9,6 +9,8 @@ import Admin from "./pages/Admin";
 import Settings from "./pages/Settings";
 import Community from "./pages/Community";
 import Docs from "./pages/Docs";
+import StudioDashboard from "./pages/StudioDashboard";
+import Portfolio from "./pages/Portfolio";
 
 function App() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -24,6 +26,10 @@ function App() {
 
   if (location === "/docs") {
     return <Docs />;
+  }
+
+  if (location.startsWith("/portfolio/")) {
+    return <Portfolio />;
   }
 
   if (isLoading) {
@@ -48,6 +54,7 @@ function App() {
       <Route path="/project/:id" component={ProjectDetails} />
       <Route path="/generator" component={Generator} />
       <Route path="/settings" component={Settings} />
+      <Route path="/studio" component={StudioDashboard} />
       <Route>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
