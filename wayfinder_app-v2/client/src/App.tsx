@@ -11,6 +11,7 @@ import Community from "./pages/Community";
 import Docs from "./pages/Docs";
 import StudioDashboard from "./pages/StudioDashboard";
 import Portfolio from "./pages/Portfolio";
+import SubmissionGenerator from "./pages/SubmissionGenerator";
 
 function App() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -53,6 +54,7 @@ function App() {
       <Route path="/creative" component={CreativeSpace} />
       <Route path="/project/:id" component={ProjectDetails} />
       <Route path="/generator" component={Generator} />
+      <Route path="/submissions" component={SubmissionGenerator} />
       <Route path="/settings" component={Settings} />
       <Route path="/studio" component={StudioDashboard} />
       <Route>
