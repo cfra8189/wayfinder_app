@@ -5,7 +5,7 @@ import crypto from "crypto";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { db } from "./db";
-import { projects, creativeNotes, users, sharedContent, communityFavorites, communityComments, blogPosts, studioArtists } from "../shared/schema";
+import { projects, creativeNotes, users, sharedContent, communityFavorites, communityComments, blogPosts, studioArtists, pressKits } from "../shared/schema";
 import { eq, desc, sql, and } from "drizzle-orm";
 import { sendVerificationEmail } from "./lib/email";
 
@@ -1258,6 +1258,98 @@ async function main() {
     } catch (error) {
       console.error("Failed to fetch invitations:", error);
       res.status(500).json({ message: "Failed to fetch invitations" });
+    }
+  });
+
+  // EPK: Get user's press kit
+  app.get("/api/epk", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.user.claims.sub);
+      const [epk] = await db.select().from(pressKits).where(eq(pressKits.userId, userId));
+      res.json({ epk: epk || null });
+    } catch (error) {
+      console.error("Failed to fetch EPK:", error);
+      res.status(500).json({ message: "Failed to fetch EPK" });
+    }
+  });
+
+  // EPK: Create or update press kit
+  app.post("/api/epk", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.user.claims.sub);
+      const {
+        shortBio, mediumBio, longBio, genre, location,
+        photoUrls, videoUrls, featuredTracks, achievements, pressQuotes,
+        socialLinks, contactEmail, contactName, bookingEmail,
+        technicalRider, stagePlot, isPublished
+      } = req.body;
+
+      const [existing] = await db.select().from(pressKits).where(eq(pressKits.userId, userId));
+
+      if (existing) {
+        const [updated] = await db.update(pressKits)
+          .set({
+            shortBio, mediumBio, longBio, genre, location,
+            photoUrls, videoUrls, featuredTracks, achievements, pressQuotes,
+            socialLinks, contactEmail, contactName, bookingEmail,
+            technicalRider, stagePlot, isPublished,
+            updatedAt: new Date()
+          })
+          .where(eq(pressKits.userId, userId))
+          .returning();
+        res.json({ epk: updated });
+      } else {
+        const [created] = await db.insert(pressKits)
+          .values({
+            userId,
+            shortBio, mediumBio, longBio, genre, location,
+            photoUrls, videoUrls, featuredTracks, achievements, pressQuotes,
+            socialLinks, contactEmail, contactName, bookingEmail,
+            technicalRider, stagePlot, isPublished
+          })
+          .returning();
+        res.json({ epk: created });
+      }
+    } catch (error) {
+      console.error("Failed to save EPK:", error);
+      res.status(500).json({ message: "Failed to save EPK" });
+    }
+  });
+
+  // EPK: Public view (by user BOX code)
+  app.get("/api/epk/:boxCode", async (req, res) => {
+    try {
+      const { boxCode } = req.params;
+      const [user] = await db.select().from(users).where(eq(users.boxCode, boxCode.toUpperCase()));
+      
+      if (!user) {
+        return res.status(404).json({ message: "Artist not found" });
+      }
+
+      const [epk] = await db.select().from(pressKits).where(eq(pressKits.userId, user.id));
+      
+      if (!epk || !epk.isPublished) {
+        return res.status(404).json({ message: "Press kit not found or not published" });
+      }
+
+      const userProjects = await db.select().from(projects)
+        .where(and(eq(projects.userId, user.id), eq(projects.status, "published")))
+        .orderBy(desc(projects.createdAt))
+        .limit(10);
+
+      res.json({
+        epk,
+        artist: {
+          id: user.id,
+          displayName: user.displayName,
+          profileImageUrl: user.profileImageUrl,
+          boxCode: user.boxCode,
+        },
+        projects: userProjects
+      });
+    } catch (error) {
+      console.error("Failed to fetch public EPK:", error);
+      res.status(500).json({ message: "Failed to fetch EPK" });
     }
   });
 

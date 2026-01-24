@@ -19,15 +19,14 @@ export default function Header({ showNav = true }: HeaderProps) {
     { href: "/", label: "Dashboard" },
     { href: "/studio", label: "Studio" },
     { href: "/submissions", label: "Submissions" },
-    { href: "/community", label: "Community" },
     { href: "/docs", label: "Docs" },
     { href: "/settings", label: "Settings" },
   ] : [
     { href: "/", label: "Dashboard" },
-    { href: "/creative", label: "Creative Space" },
+    { href: "/creative", label: "Creative" },
     { href: "/generator", label: "Agreements" },
     { href: "/submissions", label: "Submissions" },
-    { href: "/docs", label: "Docs" },
+    { href: "/epk", label: "EPK" },
     { href: "/settings", label: "Settings" },
   ];
 
