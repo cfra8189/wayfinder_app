@@ -93,6 +93,31 @@ async function main() {
     }
   });
 
+  // Update Profile (Display Name)
+  app.post("/api/auth/update-profile", isAuthenticated, async (req: any, res) => {
+    try {
+      const { displayName } = req.body;
+      const userId = req.user.claims.sub;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      await db.update(users)
+        .set({ 
+          displayName: displayName || null,
+          firstName: displayName || null,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+
+      res.json({ success: true, message: "Profile updated successfully" });
+    } catch (error) {
+      console.error("Profile update error:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   // Email/Password Registration
   app.post("/api/auth/register", async (req: any, res) => {
     try {
