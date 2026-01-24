@@ -48,7 +48,7 @@ The platform uses the REVERIE | RVR Creative Development framework:
 - **Studio** - Business accounts that manage artist rosters, curate portfolios, and feature client work
 
 ### Database Schema (Drizzle ORM)
-- **users** - User accounts (id, email, passwordHash, displayName, firstName, lastName, profileImageUrl, role, businessName, businessBio, emailVerified, verificationToken, verificationTokenExpires)
+- **users** - User accounts (id, email, passwordHash, displayName, firstName, lastName, profileImageUrl, role, businessName, businessBio, boxCode, emailVerified, verificationToken, verificationTokenExpires)
 - **sessions** - Express session storage for auth persistence
 - **projects** - Creative works with title, type, status, description, metadata (JSONB), isFeatured
 - **studio_artists** - Studio-artist relationships (studioId, artistId, status, inviteEmail, acceptedAt)
@@ -171,6 +171,9 @@ The platform uses the REVERIE | RVR Creative Development framework:
 
 ## Recent Changes
 
+- **Added BOX Code system** - Unique identifiers (BOX-XXXXXX) for users and studios to share and connect
+- **Studio code joining** - Artists can enter a studio's BOX code during registration to auto-join their network
+- **BOX code display** - Settings page shows user's code; Studio Dashboard prominently displays studio code
 - **Added role-based user system** - Artists and Studios with different dashboards and features
 - **Added Studio Dashboard** - Manage artist roster, invite artists, curate portfolio
 - **Added Portfolio page** - Public business portfolio showing roster and featured work
