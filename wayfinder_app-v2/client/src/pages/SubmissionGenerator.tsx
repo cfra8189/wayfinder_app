@@ -342,32 +342,32 @@ export default function SubmissionGenerator() {
           </p>
         </div>
 
-        <div className="flex gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-6 justify-center md:justify-start">
           <button
             onClick={() => setStep("select-platform")}
-            className={`px-4 py-2 rounded-lg text-sm ${
+            className={`px-3 py-2 rounded-lg text-xs sm:text-sm ${
               step === "select-platform" ? "bg-accent text-accent-contrast font-bold" : "bg-theme-secondary text-theme-muted"
             }`}
           >
-            1. Select Platform
+            1. Platform
           </button>
           <button
             onClick={() => selectedPlatform && setStep("select-projects")}
             disabled={!selectedPlatform}
-            className={`px-4 py-2 rounded-lg text-sm ${
+            className={`px-3 py-2 rounded-lg text-xs sm:text-sm ${
               step === "select-projects" ? "bg-accent text-accent-contrast font-bold" : "bg-theme-secondary text-theme-muted"
             } disabled:opacity-50`}
           >
-            2. Select Projects
+            2. Projects
           </button>
           <button
             onClick={() => selectedProjects.length > 0 && setStep("preview")}
             disabled={selectedProjects.length === 0}
-            className={`px-4 py-2 rounded-lg text-sm ${
+            className={`px-3 py-2 rounded-lg text-xs sm:text-sm ${
               step === "preview" ? "bg-accent text-accent-contrast font-bold" : "bg-theme-secondary text-theme-muted"
             } disabled:opacity-50`}
           >
-            3. Preview & Download
+            3. Download
           </button>
         </div>
 
