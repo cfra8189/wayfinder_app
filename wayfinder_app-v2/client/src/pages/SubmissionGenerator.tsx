@@ -464,10 +464,10 @@ export default function SubmissionGenerator() {
                         : "border border-theme hover:border-theme-muted"
                     }`}
                   >
-                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
                       selectedProjects.includes(project.id) 
                         ? "border-accent bg-accent" 
-                        : "border-theme-muted"
+                        : "border-theme-muted bg-transparent"
                     }`}>
                       {selectedProjects.includes(project.id) && (
                         <span className="text-black text-xs font-bold">✓</span>
