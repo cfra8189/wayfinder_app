@@ -1,31 +1,41 @@
 import { Resend } from 'resend';
 
 async function getUncachableResendClient() {
+  // Local-first: use RESEND_API_KEY and RESEND_FROM_EMAIL when provided
+  const envApiKey = process.env.RESEND_API_KEY;
+  const envFrom = process.env.RESEND_FROM_EMAIL;
+  if (envApiKey) {
+    return { client: new Resend(envApiKey), fromEmail: envFrom };
+  }
+
+  // Fallback to Replit connectors only if configured (legacy support)
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  const xReplitToken = process.env.REPL_IDENTITY 
-    ? 'repl ' + process.env.REPL_IDENTITY 
-    : process.env.WEB_REPL_RENEWAL 
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
+  const xReplitToken = process.env.REPL_IDENTITY
+    ? 'repl ' + process.env.REPL_IDENTITY
+    : process.env.WEB_REPL_RENEWAL
+    ? 'depl ' + process.env.WEB_REPL_RENEWAL
     : null;
 
-  if (!xReplitToken) {
-    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
+  if (!hostname || !xReplitToken) {
+    throw new Error('No Resend API key configured (set RESEND_API_KEY in .env)');
   }
 
   const connectionSettings = await fetch(
     'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=resend',
     {
       headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
+        Accept: 'application/json',
+        X_REPLIT_TOKEN: xReplitToken
       }
     }
-  ).then(res => res.json()).then(data => data.items?.[0]);
+  )
+    .then(res => res.json())
+    .then(data => data.items?.[0]);
 
-  if (!connectionSettings || (!connectionSettings.settings.api_key)) {
-    throw new Error('Resend not connected');
+  if (!connectionSettings || !connectionSettings.settings?.api_key) {
+    throw new Error('Resend not connected via Replit connectors');
   }
-  
+
   return {
     client: new Resend(connectionSettings.settings.api_key),
     fromEmail: connectionSettings.settings.from_email

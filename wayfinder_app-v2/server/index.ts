@@ -2,8 +2,8 @@ import "dotenv/config";
 import express from "express";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
-import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
+import { setupAuth, registerAuthRoutes, isAuthenticated } from "./lib/auth";
+import { registerObjectStorageRoutes } from "./lib/storage";
 import { db } from "./db";
 import { projects, creativeNotes, users, sharedContent, communityFavorites, communityComments, blogPosts, studioArtists, pressKits } from "../shared/schema";
 import { eq, desc, sql, and } from "drizzle-orm";
@@ -11,6 +11,25 @@ import { sendVerificationEmail } from "./lib/email";
 
 const app = express();
 app.use(express.json());
+
+// Helper route for development
+app.get("/", (req, res, next) => {
+  // Check if request accepts html
+  if (req.accepts("html")) {
+    res.send(`
+      <html>
+        <head><title>Wayfinder API Server</title></head>
+        <body style="font-family: system-ui; padding: 2rem; background: #111; color: #eee;">
+          <h1>Wayfinder API Server</h1>
+          <p>The API server is running on port 3000.</p>
+          <p>To access the application during development, visit <a href="http://localhost:5000" style="color: #4ade80">http://localhost:5000</a> (Vite Dev Server).</p>
+        </body>
+      </html>
+    `);
+  } else {
+    next();
+  }
+});
 
 function renderVerificationPage(success: boolean, message: string): string {
   const color = success ? "#c3f53c" : "#ef4444";
@@ -104,7 +123,7 @@ async function main() {
       }
 
       await db.update(users)
-        .set({ 
+        .set({
           displayName: displayName || null,
           firstName: displayName || null,
           updatedAt: new Date()
@@ -203,12 +222,12 @@ async function main() {
       const baseUrl = `${req.protocol}://${req.get("host")}`;
       await sendVerificationEmail(email, verificationToken, baseUrl);
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         needsVerification: true,
-        message: studioToJoin 
-          ? `Account created and joined ${studioToJoin.businessName || studioToJoin.displayName}'s network. Please check your email to verify.` 
-          : "Please check your email to verify your account" 
+        message: studioToJoin
+          ? `Account created and joined ${studioToJoin.businessName || studioToJoin.displayName}'s network. Please check your email to verify.`
+          : "Please check your email to verify your account"
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -226,7 +245,7 @@ async function main() {
       }
 
       const [user] = await db.select().from(users).where(eq(users.verificationToken, token as string));
-      
+
       if (!user) {
         return res.status(400).send(renderVerificationPage(false, "Invalid or expired verification link"));
       }
@@ -307,7 +326,7 @@ async function main() {
 
       if (user.emailVerified !== true) {
         console.log("Email not verified");
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: "Please verify your email before logging in",
           needsVerification: true,
           email: user.email
@@ -322,7 +341,7 @@ async function main() {
           expires_at: expiresAt,
         }
       };
-      
+
       console.log("Login successful for:", email, "session set");
       res.json({ success: true, user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName } });
     } catch (error) {
@@ -422,13 +441,15 @@ async function main() {
       const notes = await db.select().from(creativeNotes)
         .where(eq(creativeNotes.userId, userId))
         .orderBy(creativeNotes.sortOrder, creativeNotes.createdAt);
-      res.json({ notes: notes.map(n => ({ 
-        ...n, 
-        is_pinned: n.isPinned === "true", 
-        tags: n.tags || [],
-        sort_order: n.sortOrder ?? 0,
-        media_url: Array.isArray(n.mediaUrls) && n.mediaUrls.length > 0 ? n.mediaUrls[0] : null
-      })) });
+      res.json({
+        notes: notes.map(n => ({
+          ...n,
+          is_pinned: n.isPinned === "true",
+          tags: n.tags || [],
+          sort_order: n.sortOrder ?? 0,
+          media_url: Array.isArray(n.mediaUrls) && n.mediaUrls.length > 0 ? n.mediaUrls[0] : null
+        }))
+      });
     } catch (error) {
       console.error("Failed to fetch notes:", error);
       res.status(500).json({ message: "Failed to fetch notes" });
@@ -439,13 +460,13 @@ async function main() {
     try {
       const userId = req.user.claims.sub;
       const { category, content, media_url, tags } = req.body;
-      
+
       // Get max sortOrder for this user's notes and add 1
       const maxResult = await db.select({ max: sql<number>`COALESCE(MAX(${creativeNotes.sortOrder}), -1)` })
         .from(creativeNotes)
         .where(eq(creativeNotes.userId, userId));
       const nextSortOrder = (maxResult[0]?.max ?? -1) + 1;
-      
+
       const [note] = await db.insert(creativeNotes).values({
         userId,
         category: category || "ideas",
@@ -534,7 +555,7 @@ async function main() {
       // Verify all notes belong to the authenticated user
       const userNotes = await db.select({ id: creativeNotes.id }).from(creativeNotes).where(eq(creativeNotes.userId, userId));
       const userNoteIds = new Set(userNotes.map(n => n.id));
-      
+
       for (const id of noteIds) {
         if (!userNoteIds.has(id)) {
           return res.status(403).json({ message: "Unauthorized: Note does not belong to user" });
@@ -617,7 +638,7 @@ async function main() {
     try {
       const allUsers = await db.select().from(users);
       const allProjects = await db.select().from(projects);
-      
+
       const projectsByStatus: Record<string, number> = {};
       allProjects.forEach(p => {
         projectsByStatus[p.status] = (projectsByStatus[p.status] || 0) + 1;
@@ -635,7 +656,7 @@ async function main() {
   });
 
   // Community Sharing Endpoints
-  
+
   // User submits a note for community sharing
   app.post("/api/community/submit", isAuthenticated, async (req: any, res) => {
     try {
@@ -757,7 +778,7 @@ async function main() {
         .leftJoin(creativeNotes, eq(sharedContent.noteId, creativeNotes.id))
         .where(eq(sharedContent.status, "approved"))
         .orderBy(desc(sharedContent.approvedAt));
-      
+
       // Get favorites count for each
       const result = await Promise.all(approved.map(async (item) => {
         const favorites = await db.select().from(communityFavorites).where(eq(communityFavorites.sharedContentId, item.id));
@@ -856,7 +877,7 @@ async function main() {
       const favorites = await db.select({ sharedContentId: communityFavorites.sharedContentId })
         .from(communityFavorites)
         .where(eq(communityFavorites.userId, numericUserId));
-      
+
       res.json({ favoriteIds: favorites.map(f => f.sharedContentId) });
     } catch (error) {
       console.error("Failed to fetch favorites:", error);
@@ -912,7 +933,7 @@ async function main() {
     try {
       const { id } = req.params;
       const [post] = await db.select().from(blogPosts).where(eq(blogPosts.id, parseInt(id)));
-      
+
       const newStatus = post.isPublished === "true" ? "false" : "true";
       const [updated] = await db.update(blogPosts)
         .set({
@@ -934,13 +955,13 @@ async function main() {
     try {
       const userId = req.user.claims.sub;
       const [user] = await db.select().from(users).where(eq(users.id, userId));
-      
+
       if (user?.role !== "studio") {
         return res.status(403).json({ message: "Studio access only" });
       }
 
       const relations = await db.select().from(studioArtists).where(eq(studioArtists.studioId, parseInt(userId)));
-      
+
       const artistsWithInfo = await Promise.all(relations.map(async (rel) => {
         if (rel.artistId) {
           const [artist] = await db.select().from(users).where(eq(users.id, rel.artistId));
@@ -990,7 +1011,7 @@ async function main() {
       }
 
       const [existingArtist] = await db.select().from(users).where(eq(users.email, email));
-      
+
       if (existingArtist) {
         const [existingRelation] = await db.select().from(studioArtists)
           .where(and(
@@ -1202,7 +1223,7 @@ async function main() {
       const userIdNum = parseInt(userId);
 
       const [invitation] = await db.select().from(studioArtists).where(eq(studioArtists.id, parseInt(invitationId)));
-      
+
       if (!invitation) {
         return res.status(404).json({ message: "Invitation not found" });
       }
@@ -1321,13 +1342,13 @@ async function main() {
     try {
       const { boxCode } = req.params;
       const [user] = await db.select().from(users).where(eq(users.boxCode, boxCode.toUpperCase()));
-      
+
       if (!user) {
         return res.status(404).json({ message: "Artist not found" });
       }
 
       const [epk] = await db.select().from(pressKits).where(eq(pressKits.userId, user.id));
-      
+
       if (!epk || !epk.isPublished) {
         return res.status(404).json({ message: "Press kit not found or not published" });
       }
