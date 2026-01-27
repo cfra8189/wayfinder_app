@@ -1,9 +1,11 @@
 # Build stage
 FROM node:20-alpine AS build
 WORKDIR /app
-COPY package.json package-lock.json .
+# Copy only the subproject package files (build context is repo root)
+COPY ./wayfinder_app-v2/package.json ./wayfinder_app-v2/package-lock.json ./
 RUN npm ci --omit=dev
-COPY . .
+# Copy subproject source into the image
+COPY ./wayfinder_app-v2 .
 RUN npm run build
 
 # Production image
