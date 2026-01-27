@@ -14,4 +14,8 @@ COPY --from=build /app/dist ./dist
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 EXPOSE 3000
-CMD ["node", "dist/server/index.js"]
+COPY --from=build /app/scripts ./scripts
+COPY --from=build /app/drizzle ./drizzle
+
+# Run migrations (safe to ignore failures) then start the server
+CMD ["sh", "-c", "node scripts/push_to_postgres.js || true && node dist/server/index.js"]
