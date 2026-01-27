@@ -16,8 +16,9 @@ FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app/dist ./dist
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+# Copy the built app's package files (from build stage) so production deps match the subproject
+COPY --from=build /app/package.json /app/package-lock.json ./
+RUN npm ci --omit=dev --no-audit --no-fund
 EXPOSE 3000
 COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/drizzle ./drizzle
