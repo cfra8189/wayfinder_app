@@ -14,6 +14,19 @@ import { setupAuth, registerAuthRoutes, isAuthenticated } from "./lib/auth";
 import { registerObjectStorageRoutes } from "./lib/storage";
 import { db } from "./db";
 import { projects, creativeNotes, users, sharedContent, communityFavorites, communityComments, blogPosts, studioArtists, pressKits } from "../shared/schema";
+import type { UpsertUser } from "../shared/models/auth";
+import type {
+  InsertProject,
+  InsertStudioArtist,
+  InsertCreativeNote,
+  InsertSharedContent,
+  InsertPressKit,
+} from "../shared/models/projects";
+
+// Derived insert types for tables that don't export Insert types
+type InsertCommunityFavorite = typeof communityFavorites.$inferInsert;
+type InsertCommunityComment = typeof communityComments.$inferInsert;
+type InsertBlogPost = typeof blogPosts.$inferInsert;
 import { eq, desc, sql, and } from "drizzle-orm";
 import { sendVerificationEmail } from "./lib/email";
 
@@ -215,7 +228,7 @@ async function main() {
         emailVerified: false,
         verificationToken,
         verificationTokenExpires,
-      } as any).returning();
+      } as UpsertUser).returning();
 
       if (studioToJoin && user) {
         await db.insert(studioArtists).values({
@@ -224,7 +237,7 @@ async function main() {
           inviteEmail: email,
           status: "accepted",
           acceptedAt: new Date(),
-        } as any);
+        } as InsertStudioArtist);
       }
 
       const baseUrl = `${req.protocol}://${req.get("host")}`;
@@ -380,7 +393,7 @@ async function main() {
         status: status || "concept",
         description,
         metadata: metadata || {},
-      } as any).returning();
+      } as InsertProject).returning();
       res.json({ project });
     } catch (error) {
       console.error("Failed to create project:", error);
@@ -482,7 +495,7 @@ async function main() {
         mediaUrls: media_url ? [media_url] : [],
         tags: tags || [],
         sortOrder: nextSortOrder,
-      } as any).returning();
+      } as InsertCreativeNote).returning();
       res.json({ note: { ...note, is_pinned: false, tags: note.tags || [], media_url: media_url || null, sort_order: note.sortOrder } });
     } catch (error) {
       console.error("Failed to create note:", error);
@@ -691,7 +704,7 @@ async function main() {
         noteId,
         userId: numericUserId,
         status: "pending",
-      } as any).returning();
+      } as InsertSharedContent).returning();
 
       res.json({ submission });
     } catch (error) {
@@ -825,7 +838,7 @@ async function main() {
         await db.insert(communityFavorites).values({
           sharedContentId,
           userId: numericUserId,
-        } as any);
+        } as InsertCommunityFavorite);
         res.json({ favorited: true });
       }
     } catch (error) {
@@ -852,7 +865,7 @@ async function main() {
         sharedContentId,
         userId: numericUserId,
         content: content.trim(),
-      } as any).returning();
+      } as InsertCommunityComment).returning();
 
       res.json({ comment });
     } catch (error) {
@@ -907,7 +920,7 @@ async function main() {
         title,
         content,
         authorId: 1, // Admin user
-      } as any).returning();
+      } as InsertBlogPost).returning();
 
       // Update shared content with blog post reference
       if (sharedContentId) {
@@ -1036,7 +1049,7 @@ async function main() {
           artistId: existingArtist.id,
           status: "pending",
           inviteEmail: email,
-        } as any);
+        } as InsertStudioArtist);
       } else {
         const [existingInvite] = await db.select().from(studioArtists)
           .where(and(
@@ -1053,7 +1066,7 @@ async function main() {
           artistId: null,
           status: "pending",
           inviteEmail: email,
-        } as any);
+        } as InsertStudioArtist);
       }
 
       res.json({ success: true, message: "Invitation sent" });
@@ -1323,7 +1336,7 @@ async function main() {
             socialLinks, contactEmail, contactName, bookingEmail,
             technicalRider, stagePlot, isPublished,
             updatedAt: new Date()
-          })
+          } as InsertPressKit)
           .where(eq(pressKits.userId, userId))
           .returning();
         res.json({ epk: updated });
@@ -1335,7 +1348,7 @@ async function main() {
             photoUrls, videoUrls, featuredTracks, achievements, pressQuotes,
             socialLinks, contactEmail, contactName, bookingEmail,
             technicalRider, stagePlot, isPublished
-          } as any)
+          } as InsertPressKit)
           .returning();
         res.json({ epk: created });
       }
