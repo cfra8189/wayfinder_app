@@ -1,10 +1,12 @@
-import Resend from 'resend';
-
 async function getUncachableResendClient() {
   // Local-first: use RESEND_API_KEY and RESEND_FROM_EMAIL when provided
   const envApiKey = process.env.RESEND_API_KEY;
   const envFrom = process.env.RESEND_FROM_EMAIL;
   if (envApiKey) {
+    // Load `resend` dynamically so builds do not require the package in environments
+    // where it's not installed. If you want Resend available in production, install it.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const Resend = require('resend').default || require('resend');
     return { client: new Resend(envApiKey), fromEmail: envFrom };
   }
 
