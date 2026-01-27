@@ -4,10 +4,10 @@ services:
     name: wayfinder-backend
     env: docker
     plan: free
-    repo: REPLACE_WITH_GITHUB_REPO   # e.g. github.com/youruser/yourrepo
+    repo: https://github.com/cfra8189/wayfinder_app.git
     branch: main
-    rootDir: wayfinder_app-v2
-    dockerfilePath: Dockerfile
+    rootDir: .
+    dockerfilePath: wayfinder_app-v2/Dockerfile
     buildCommand: npm ci && npm run build
     startCommand: npm run start
     autoDeploy: true
