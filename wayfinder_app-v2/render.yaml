@@ -1,0 +1,22 @@
+# Render service manifest for backend. Replace REPO and optionally branch.
+services:
+  - type: web
+    name: wayfinder-backend
+    env: docker
+    plan: free
+    repo: REPLACE_WITH_GITHUB_REPO   # e.g. github.com/youruser/yourrepo
+    branch: main
+    rootDir: wayfinder_app-v2
+    dockerfilePath: Dockerfile
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
+      - key: NODE_ENV
+        value: production
