@@ -6,9 +6,11 @@
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "tsx watch server/index.ts",
     "dev:client": "vite",
-    "build": "vite build",
+    "build": "vite build && tsc -p tsconfig.node.json",
     "start": "node dist/server/index.js",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "migrate": "npx drizzle-kit migrate --config ./drizzle.config.ts",
+    "docker:build": "docker build -t wayfinder-app ."
   },
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",
