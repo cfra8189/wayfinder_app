@@ -18,10 +18,12 @@ ENV NODE_ENV=production
 COPY --from=build /app/dist ./dist
 # Copy the built app's package files (from build stage) so production deps match the subproject
 COPY --from=build /app/package.json /app/package-lock.json ./
+# Remove "type":"module" from the copied package.json so CommonJS-built server runs under node
+RUN node -e "const p=require('./package.json'); if(p.type){delete p.type; require('fs').writeFileSync('package.json', JSON.stringify(p,null,2));}"
 RUN npm ci --omit=dev --no-audit --no-fund
 EXPOSE 3000
 COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/drizzle ./drizzle
 
 # Run migrations (safe to ignore failures) then start the server
-CMD ["sh", "-c", "node scripts/push_to_postgres.js || true && node dist/server/index.js"]
+CMD ["sh", "-c", "node scripts/push_to_postgres.cjs || true && node dist/server/index.js"]
