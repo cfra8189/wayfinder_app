@@ -2,8 +2,9 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 # Copy only the subproject package files (build context is repo root)
+# Copy subproject package files and install all deps (including dev) for build
 COPY ./wayfinder_app-v2/package.json ./wayfinder_app-v2/package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci
 # Copy subproject source into the image
 COPY ./wayfinder_app-v2 .
 RUN npm run build
