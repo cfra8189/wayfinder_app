@@ -207,7 +207,7 @@ async function main() {
         emailVerified: false,
         verificationToken,
         verificationTokenExpires,
-      }).returning();
+      } as any).returning();
 
       if (studioToJoin && user) {
         await db.insert(studioArtists).values({
@@ -372,7 +372,7 @@ async function main() {
         status: status || "concept",
         description,
         metadata: metadata || {},
-      }).returning();
+      } as any).returning();
       res.json({ project });
     } catch (error) {
       console.error("Failed to create project:", error);
@@ -444,7 +444,7 @@ async function main() {
       res.json({
         notes: notes.map(n => ({
           ...n,
-          is_pinned: n.isPinned === "true",
+          is_pinned: Boolean(n.isPinned),
           tags: n.tags || [],
           sort_order: n.sortOrder ?? 0,
           media_url: Array.isArray(n.mediaUrls) && n.mediaUrls.length > 0 ? n.mediaUrls[0] : null
@@ -474,7 +474,7 @@ async function main() {
         mediaUrls: media_url ? [media_url] : [],
         tags: tags || [],
         sortOrder: nextSortOrder,
-      }).returning();
+      } as any).returning();
       res.json({ note: { ...note, is_pinned: false, tags: note.tags || [], media_url: media_url || null, sort_order: note.sortOrder } });
     } catch (error) {
       console.error("Failed to create note:", error);
@@ -502,7 +502,7 @@ async function main() {
         .where(eq(creativeNotes.id, parseInt(req.params.id)))
         .returning();
       const returnUrl = Array.isArray(note.mediaUrls) && note.mediaUrls.length > 0 ? note.mediaUrls[0] : null;
-      res.json({ note: { ...note, is_pinned: note.isPinned === "true", tags: note.tags || [], media_url: returnUrl } });
+      res.json({ note: { ...note, is_pinned: Boolean(note.isPinned), tags: note.tags || [], media_url: returnUrl } });
     } catch (error) {
       console.error("Failed to update note:", error);
       res.status(500).json({ message: "Failed to update note" });
@@ -532,10 +532,10 @@ async function main() {
         return res.status(404).json({ message: "Note not found" });
       }
       const [note] = await db.update(creativeNotes)
-        .set({ isPinned: existing.isPinned === "true" ? "false" : "true" })
+        .set({ isPinned: !existing.isPinned })
         .where(eq(creativeNotes.id, parseInt(req.params.id)))
         .returning();
-      res.json({ note: { ...note, is_pinned: note.isPinned === "true" } });
+      res.json({ note: { ...note, is_pinned: Boolean(note.isPinned) } });
     } catch (error) {
       console.error("Failed to toggle pin:", error);
       res.status(500).json({ message: "Failed to toggle pin" });
@@ -683,7 +683,7 @@ async function main() {
         noteId,
         userId: numericUserId,
         status: "pending",
-      }).returning();
+      } as any).returning();
 
       res.json({ submission });
     } catch (error) {
@@ -817,7 +817,7 @@ async function main() {
         await db.insert(communityFavorites).values({
           sharedContentId,
           userId: numericUserId,
-        });
+        } as any);
         res.json({ favorited: true });
       }
     } catch (error) {
@@ -844,7 +844,7 @@ async function main() {
         sharedContentId,
         userId: numericUserId,
         content: content.trim(),
-      }).returning();
+      } as any).returning();
 
       res.json({ comment });
     } catch (error) {
@@ -899,7 +899,7 @@ async function main() {
         title,
         content,
         authorId: 1, // Admin user
-      }).returning();
+      } as any).returning();
 
       // Update shared content with blog post reference
       if (sharedContentId) {
@@ -1327,7 +1327,7 @@ async function main() {
             photoUrls, videoUrls, featuredTracks, achievements, pressQuotes,
             socialLinks, contactEmail, contactName, bookingEmail,
             technicalRider, stagePlot, isPublished
-          })
+          } as any)
           .returning();
         res.json({ epk: created });
       }
