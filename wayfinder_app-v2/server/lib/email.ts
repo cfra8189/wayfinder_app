@@ -1,4 +1,4 @@
-import { Resend } from 'resend';
+import Resend from 'resend';
 
 async function getUncachableResendClient() {
   // Local-first: use RESEND_API_KEY and RESEND_FROM_EMAIL when provided
