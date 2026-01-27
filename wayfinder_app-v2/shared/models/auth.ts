@@ -30,7 +30,7 @@ export const users = pgTable("users", {
   boxCode: text("box_code").unique(),
   emailVerified: boolean("email_verified").default(false),
   verificationToken: text("verification_token"),
-  verificationTokenExpires: integer("verification_token_expires"),
+  verificationTokenExpires: timestamp("verification_token_expires", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).$defaultFn(() => new Date()),
   updatedAt: timestamp("updated_at", { withTimezone: true }).$defaultFn(() => new Date()).$onUpdateFn(() => new Date()),
 });
