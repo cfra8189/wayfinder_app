@@ -1,4 +1,12 @@
-import "dotenv/config";
+// Load `.env` in non-production environments if available (safe if `dotenv` is not installed)
+try {
+  if (!process.env.DATABASE_URL) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    require('dotenv').config();
+  }
+} catch (e) {
+  // ignore missing dotenv in production image
+}
 import express from "express";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";

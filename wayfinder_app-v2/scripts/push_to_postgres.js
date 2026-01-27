@@ -15,8 +15,8 @@ async function main() {
     }
   }
   if (!databaseUrl) {
-    console.error('DATABASE_URL not provided. Set env or pass as arg.');
-    process.exit(1);
+    console.error('DATABASE_URL not provided. Set env or pass as arg. Skipping migration.');
+    return;
   }
 
   const sqlPath = path.resolve(process.cwd(), 'drizzle', '0000_thin_fat_cobra.sql');
@@ -47,9 +47,10 @@ async function main() {
   } catch (err) {
     console.error('Migration failed:', err.message || err);
     try { await client.query('ROLLBACK'); } catch (_) {}
-    process.exit(1);
+    // Don't exit non-zero so container can continue booting even if DB unreachable
+    return;
   } finally {
-    await client.end();
+    try { await client.end(); } catch (_) {}
   }
 }
 
