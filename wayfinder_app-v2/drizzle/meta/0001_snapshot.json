@@ -1,6 +1,6 @@
 {
-  "id": "635403c5-67b6-456d-8503-02eb3eb08962",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "ded1b80c-44dc-454f-95bd-1f560bc96774",
+  "prevId": "635403c5-67b6-456d-8503-02eb3eb08962",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -16,7 +16,7 @@
         },
         "sess": {
           "name": "sess",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": true
         },
@@ -121,7 +121,7 @@
         },
         "email_verified": {
           "name": "email_verified",
-          "type": "integer",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": false,
           "default": false
@@ -140,13 +140,13 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         }
@@ -207,20 +207,20 @@
         },
         "is_published": {
           "name": "is_published",
-          "type": "text",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": false,
-          "default": "'false'"
+          "default": false
         },
         "created_at": {
           "name": "created_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
         "published_at": {
           "name": "published_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         }
@@ -322,7 +322,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         }
@@ -383,24 +383,24 @@
         },
         "media_urls": {
           "name": "media_urls",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false,
-          "default": []
+          "default": "'[]'::jsonb"
         },
         "tags": {
           "name": "tags",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false,
-          "default": []
+          "default": "'[]'::jsonb"
         },
         "is_pinned": {
           "name": "is_pinned",
-          "type": "text",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": false,
-          "default": "'false'"
+          "default": false
         },
         "sort_order": {
           "name": "sort_order",
@@ -411,7 +411,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
@@ -475,45 +475,45 @@
         },
         "photo_urls": {
           "name": "photo_urls",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false,
-          "default": []
+          "default": "'[]'::jsonb"
         },
         "video_urls": {
           "name": "video_urls",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false,
-          "default": []
+          "default": "'[]'::jsonb"
         },
         "featured_tracks": {
           "name": "featured_tracks",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false,
-          "default": []
+          "default": "'[]'::jsonb"
         },
         "achievements": {
           "name": "achievements",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false,
-          "default": []
+          "default": "'[]'::jsonb"
         },
         "press_quotes": {
           "name": "press_quotes",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false,
-          "default": []
+          "default": "'[]'::jsonb"
         },
         "social_links": {
           "name": "social_links",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false,
-          "default": {}
+          "default": "'{}'::jsonb"
         },
         "contact_email": {
           "name": "contact_email",
@@ -547,20 +547,20 @@
         },
         "is_published": {
           "name": "is_published",
-          "type": "integer",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": false,
           "default": false
         },
         "created_at": {
           "name": "created_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         }
@@ -622,27 +622,27 @@
         },
         "metadata": {
           "name": "metadata",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false,
-          "default": {}
+          "default": "'{}'::jsonb"
         },
         "is_featured": {
           "name": "is_featured",
-          "type": "integer",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": false,
           "default": false
         },
         "created_at": {
           "name": "created_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         }
@@ -695,13 +695,13 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
         "approved_at": {
           "name": "approved_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         }
@@ -762,13 +762,13 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
         "accepted_at": {
           "name": "accepted_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         }
