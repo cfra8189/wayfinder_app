@@ -17,12 +17,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install and build
-        working-directory: client
-        run: |
-          npm ci
-          npm run build
-
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v20
         with:
