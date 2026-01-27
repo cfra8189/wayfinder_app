@@ -19,9 +19,27 @@ async function main() {
     return;
   }
 
-  const sqlPath = path.resolve(process.cwd(), 'drizzle', '0000_thin_fat_cobra.sql');
-  if (!fs.existsSync(sqlPath)) {
-    console.error('SQL migration file not found at', sqlPath);
+  // prefer historically-named migration, but fall back to any baseline SQL present
+  const candidates = [
+    '0000_thin_fat_cobra.sql',
+    '0000_baseline.sql',
+    '0000_initial.sql'
+  ];
+  let sqlPath = null;
+  for (const name of candidates) {
+    const p = path.resolve(process.cwd(), 'drizzle', name);
+    if (fs.existsSync(p)) { sqlPath = p; break; }
+  }
+  if (!sqlPath) {
+    // try to pick any .sql file in drizzle/
+    const dir = path.resolve(process.cwd(), 'drizzle');
+    if (fs.existsSync(dir)) {
+      const files = fs.readdirSync(dir).filter(f => f.endsWith('.sql'));
+      if (files.length) sqlPath = path.resolve(dir, files[0]);
+    }
+  }
+  if (!sqlPath) {
+    console.error('SQL migration file not found in drizzle/');
     return;
   }
 
