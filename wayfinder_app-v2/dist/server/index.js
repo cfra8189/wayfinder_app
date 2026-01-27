@@ -3,7 +3,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-require("dotenv/config");
+// Load `.env` in non-production environments if available (safe if `dotenv` is not installed)
+try {
+    if (!process.env.DATABASE_URL) {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        require('dotenv').config();
+    }
+}
+catch (e) {
+    // ignore missing dotenv in production image
+}
 const express_1 = __importDefault(require("express"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const crypto_1 = __importDefault(require("crypto"));
