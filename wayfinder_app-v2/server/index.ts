@@ -52,6 +52,11 @@ app.get("/", (req, res, next) => {
   }
 });
 
+// Lightweight health endpoint for monitoring
+app.get('/health', (req, res) => {
+  res.json({ ok: true, timestamp: new Date().toISOString() });
+});
+
 function renderVerificationPage(success: boolean, message: string): string {
   const color = success ? "#c3f53c" : "#ef4444";
   const icon = success ? "✓" : "✗";
