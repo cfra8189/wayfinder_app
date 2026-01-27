@@ -1,0 +1,18 @@
+Running migration...
+Failed executing statement: 
+CREATE TABLE `sessions` (
+	`sid` text PRIMARY KEY NOT NULL,
+	`sess` text NOT NULL,
+	`expire` integer NOT NULL
+);
+
+Migration failed: SqliteError: table `sessions` already exists
+    at Database.exec (C:\Users\Clarence Franklin\Desktop\RVR\wayfinderapp-v2\wayfinder_app-v2\node_modules\better-sqlite3\lib\methods\wrappers.js:9:14)
+    at file:///C:/Users/Clarence%20Franklin/Desktop/RVR/wayfinderapp-v2/wayfinder_app-v2/scripts/migrate.js:28:24
+    at sqliteTransaction (C:\Users\Clarence Franklin\Desktop\RVR\wayfinderapp-v2\wayfinder_app-v2\node_modules\better-sqlite3\lib\methods\transaction.js:65:24)
+    at file:///C:/Users/Clarence%20Franklin/Desktop/RVR/wayfinderapp-v2/wayfinder_app-v2/scripts/migrate.js:38:5
+    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:691:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  code: 'SQLITE_ERROR'
+}
