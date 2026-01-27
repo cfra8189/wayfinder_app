@@ -1,0 +1,30 @@
+name: Smoke Tests & Notify
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run smoke tests
+        id: smoke
+        run: |
+          set -e
+          ./wayfinder_app-v2/scripts/smoke_test.sh
+        continue-on-error: true
+
+      - name: Notify on failure
+        if: ${{ steps.smoke.outcome == 'failure' }}
+        run: |
+          if [ -n "${{ secrets.NOTIFY_WEBHOOK }}" ]; then
+            payload=$(jq -n --arg repo "${{ github.repository }}" --arg ref "${{ github.ref }}" '{text: ("Smoke tests failed for " + $repo + " on " + $ref)}')
+            curl -s -X POST -H 'Content-Type: application/json' --data "$payload" "${{ secrets.NOTIFY_WEBHOOK }}"
+          else
+            echo "No NOTIFY_WEBHOOK secret set; skipping notification."
+          fi
