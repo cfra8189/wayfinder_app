@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import fs from 'fs';
-import path from 'path';
-import { Client } from 'pg';
+const fs = require('fs');
+const path = require('path');
+const { Client } = require('pg');
 
 async function main() {
   let databaseUrl = process.env.DATABASE_URL || process.argv[2];
