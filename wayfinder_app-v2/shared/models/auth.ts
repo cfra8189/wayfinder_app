@@ -1,13 +1,13 @@
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, pgTable, text, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
 
 // Session storage table.
 // (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
-export const sessions = sqliteTable(
+export const sessions = pgTable(
   "sessions",
   {
     sid: text("sid").primaryKey(),
-    sess: text("sess", { mode: "json" }).notNull(),
-    expire: integer("expire", { mode: "timestamp" }).notNull(),
+    sess: jsonb("sess").notNull(),
+    expire: integer("expire").notNull(),
   },
   (table) => ({
     expireIdx: index("IDX_session_expire").on(table.expire)
@@ -16,7 +16,7 @@ export const sessions = sqliteTable(
 
 // User storage table.
 // (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
-export const users = sqliteTable("users", {
+export const users = pgTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   email: text("email").unique(),
   passwordHash: text("password_hash"),
@@ -28,11 +28,11 @@ export const users = sqliteTable("users", {
   businessName: text("business_name"),
   businessBio: text("business_bio"),
   boxCode: text("box_code").unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" }).default(false),
+  emailVerified: boolean("email_verified").default(false),
   verificationToken: text("verification_token"),
-  verificationTokenExpires: integer("verification_token_expires", { mode: "timestamp" }),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).$onUpdateFn(() => new Date()),
+  verificationTokenExpires: integer("verification_token_expires"),
+  createdAt: timestamp("created_at", { withTimezone: true }).$defaultFn(() => new Date()),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$defaultFn(() => new Date()).$onUpdateFn(() => new Date()),
 });
 
 export type UpsertUser = typeof users.$inferInsert;
