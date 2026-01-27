@@ -37,7 +37,9 @@ async function getUncachableResendClient() {
   if (!connectionSettings || !connectionSettings.settings?.api_key) {
     throw new Error('Resend not connected via Replit connectors');
   }
-
+  // Dynamically require Resend for environments where it's available
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const Resend = require('resend')?.default || require('resend');
   return {
     client: new Resend(connectionSettings.settings.api_key),
     fromEmail: connectionSettings.settings.from_email

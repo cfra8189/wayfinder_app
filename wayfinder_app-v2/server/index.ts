@@ -216,7 +216,7 @@ async function main() {
           inviteEmail: email,
           status: "accepted",
           acceptedAt: new Date(),
-        });
+        } as any);
       }
 
       const baseUrl = `${req.protocol}://${req.get("host")}`;
@@ -919,7 +919,7 @@ async function main() {
   app.get("/api/blog", async (req, res) => {
     try {
       const posts = await db.select().from(blogPosts)
-        .where(eq(blogPosts.isPublished, "true"))
+        .where(eq(blogPosts.isPublished, true))
         .orderBy(desc(blogPosts.publishedAt));
       res.json({ posts });
     } catch (error) {
@@ -934,11 +934,11 @@ async function main() {
       const { id } = req.params;
       const [post] = await db.select().from(blogPosts).where(eq(blogPosts.id, parseInt(id)));
 
-      const newStatus = post.isPublished === "true" ? "false" : "true";
+      const newStatus = !Boolean(post.isPublished);
       const [updated] = await db.update(blogPosts)
         .set({
           isPublished: newStatus,
-          publishedAt: newStatus === "true" ? new Date() : null,
+          publishedAt: newStatus ? new Date() : null,
         })
         .where(eq(blogPosts.id, parseInt(id)))
         .returning();
@@ -1028,7 +1028,7 @@ async function main() {
           artistId: existingArtist.id,
           status: "pending",
           inviteEmail: email,
-        });
+        } as any);
       } else {
         const [existingInvite] = await db.select().from(studioArtists)
           .where(and(
@@ -1045,7 +1045,7 @@ async function main() {
           artistId: null,
           status: "pending",
           inviteEmail: email,
-        });
+        } as any);
       }
 
       res.json({ success: true, message: "Invitation sent" });
