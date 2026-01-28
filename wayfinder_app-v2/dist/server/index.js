@@ -14,6 +14,7 @@ catch (e) {
     // ignore missing dotenv in production image
 }
 const express_1 = __importDefault(require("express"));
+const path_1 = __importDefault(require("path"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const crypto_1 = __importDefault(require("crypto"));
 const auth_1 = require("./lib/auth");
@@ -24,10 +25,20 @@ const drizzle_orm_1 = require("drizzle-orm");
 const email_1 = require("./lib/email");
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
+// Serve frontend static assets when running a production build
+if (process.env.NODE_ENV === "production") {
+    const publicPath = path_1.default.join(__dirname, "../public");
+    app.use(express_1.default.static(publicPath));
+}
 // Helper route for development
 app.get("/", (req, res, next) => {
-    // Check if request accepts html
+    // In production serve the built frontend index.html
     if (req.accepts("html")) {
+        if (process.env.NODE_ENV === "production") {
+            const indexPath = path_1.default.join(__dirname, "../public/index.html");
+            return res.sendFile(indexPath);
+        }
+        // Development helper page
         res.send(`
       <html>
         <head><title>Wayfinder API Server</title></head>
@@ -1237,9 +1248,8 @@ async function main() {
         }
     });
     const PORT = 3000;
-    const HOST = "127.0.0.1";
-    app.listen(PORT, HOST, () => {
-        console.log(`Server running on ${HOST}:${PORT}`);
+    app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Server running on port ${PORT}`);
     });
 }
 main().catch(console.error);
