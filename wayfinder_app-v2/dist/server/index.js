@@ -15,6 +15,7 @@ catch (e) {
 }
 const express_1 = __importDefault(require("express"));
 const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const crypto_1 = __importDefault(require("crypto"));
 const auth_1 = require("./lib/auth");
@@ -25,16 +26,21 @@ const drizzle_orm_1 = require("drizzle-orm");
 const email_1 = require("./lib/email");
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
-// Serve frontend static assets when running a production build
-if (process.env.NODE_ENV === "production") {
-    const publicPath = path_1.default.join(__dirname, "../public");
+// Serve frontend static assets when running a production build,
+// or when the built `public` folder exists, or when forced.
+const publicPath = path_1.default.join(__dirname, "../public");
+if (process.env.NODE_ENV === "production" ||
+    process.env.FORCE_STATIC === "1" ||
+    fs_1.default.existsSync(publicPath)) {
     app.use(express_1.default.static(publicPath));
 }
 // Helper route for development
 app.get("/", (req, res, next) => {
     // In production serve the built frontend index.html
     if (req.accepts("html")) {
-        if (process.env.NODE_ENV === "production") {
+        if (process.env.NODE_ENV === "production" ||
+            process.env.FORCE_STATIC === "1" ||
+            fs_1.default.existsSync(path_1.default.join(__dirname, "../public/index.html"))) {
             const indexPath = path_1.default.join(__dirname, "../public/index.html");
             return res.sendFile(indexPath);
         }

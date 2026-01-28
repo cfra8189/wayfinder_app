@@ -9,6 +9,7 @@ try {
 }
 import express from "express";
 import path from "path";
+import fs from "fs";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./lib/auth";
@@ -34,9 +35,14 @@ import { sendVerificationEmail } from "./lib/email";
 const app = express();
 app.use(express.json());
 
-// Serve frontend static assets when running a production build
-if (process.env.NODE_ENV === "production") {
-  const publicPath = path.join(__dirname, "../public");
+// Serve frontend static assets when running a production build,
+// or when the built `public` folder exists, or when forced.
+const publicPath = path.join(__dirname, "../public");
+if (
+  process.env.NODE_ENV === "production" ||
+  process.env.FORCE_STATIC === "1" ||
+  fs.existsSync(publicPath)
+) {
   app.use(express.static(publicPath));
 }
 
@@ -44,7 +50,11 @@ if (process.env.NODE_ENV === "production") {
 app.get("/", (req, res, next) => {
   // In production serve the built frontend index.html
   if (req.accepts("html")) {
-    if (process.env.NODE_ENV === "production") {
+    if (
+      process.env.NODE_ENV === "production" ||
+      process.env.FORCE_STATIC === "1" ||
+      fs.existsSync(path.join(__dirname, "../public/index.html"))
+    ) {
       const indexPath = path.join(__dirname, "../public/index.html");
       return res.sendFile(indexPath);
     }
