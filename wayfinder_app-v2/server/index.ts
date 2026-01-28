@@ -35,14 +35,29 @@ import { sendVerificationEmail } from "./lib/email";
 const app = express();
 app.use(express.json());
 
-// Serve frontend static assets when running a production build,
-// or when the built `public` folder exists, or when forced.
-const publicPath = path.join(__dirname, "../public");
-if (
-  process.env.NODE_ENV === "production" ||
-  process.env.FORCE_STATIC === "1" ||
-  fs.existsSync(publicPath)
-) {
+// Locate the built frontend `public` folder in a few likely places
+// so the server serves the static UI regardless of how the app was built.
+const candidatePublicPaths = [
+  path.join(__dirname, "../public"), // when running from dist/server
+  path.join(process.cwd(), "dist/public"), // when running from repo root
+  path.join(process.cwd(), "wayfinder_app-v2/dist/public"), // monorepo-layout
+];
+
+function findPublicPath() {
+  if (process.env.FORCE_STATIC === "1") return candidatePublicPaths[0];
+  if (process.env.NODE_ENV === "production") return candidatePublicPaths[0];
+  for (const p of candidatePublicPaths) {
+    try {
+      if (fs.existsSync(p)) return p;
+    } catch (e) {
+      // ignore
+    }
+  }
+  return null;
+}
+
+const publicPath = findPublicPath();
+if (publicPath) {
   app.use(express.static(publicPath));
 }
 
@@ -50,13 +65,10 @@ if (
 app.get("/", (req, res, next) => {
   // In production serve the built frontend index.html
   if (req.accepts("html")) {
-    if (
-      process.env.NODE_ENV === "production" ||
-      process.env.FORCE_STATIC === "1" ||
-      fs.existsSync(path.join(__dirname, "../public/index.html"))
-    ) {
-      const indexPath = path.join(__dirname, "../public/index.html");
-      return res.sendFile(indexPath);
+    const indexCandidate = publicPath || (fs.existsSync(path.join(__dirname, "../public/index.html")) ? path.join(__dirname, "../public/index.html") : null);
+    if (indexCandidate) {
+      const indexPath = path.join(indexCandidate, "index.html");
+      if (fs.existsSync(indexPath)) return res.sendFile(indexPath);
     }
 
     // Development helper page
