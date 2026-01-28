@@ -1,0 +1,57 @@
+name: Deploy to Render
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Create Render service payload
+        run: |
+          cat > service.json <<'JSON'
+          {
+            "name": "wayfinder-backend",
+            "env": "docker",
+            "repo": "https://github.com/cfra8189/wayfinder_app.git",
+            "branch": "main",
+            "rootDir": ".",
+            "dockerfilePath": "wayfinder_app-v2/Dockerfile",
+            "buildCommand": "npm ci && npm run build",
+            "startCommand": "npm run start",
+            "autoDeploy": true,
+            "plan": "free"
+          }
+          JSON
+
+      - name: Create or update Render service
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${RENDER_API_KEY:-}" ]; then echo 'RENDER_API_KEY not set' >&2; exit 1; fi
+
+          # Try to create the service
+          resp=$(curl -s -w "\n%{http_code}" -X POST https://api.render.com/v1/services \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            --data-binary @service.json)
+
+          http=$(echo "$resp" | tail -n1)
+          body=$(echo "$resp" | sed '$d')
+
+          echo "Render response HTTP status: $http"
+          if [ "$http" = "201" ] || [ "$http" = "200" ]; then
+            echo "Service created/updated successfully"
+            echo "Render response:"
+            echo "$body"
+            exit 0
+          fi
+
+          echo "Create failed, response ($http): $body"
+          exit 1
