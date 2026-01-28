@@ -1237,8 +1237,9 @@ async function main() {
         }
     });
     const PORT = 3000;
-    app.listen(PORT, "0.0.0.0", () => {
-        console.log(`Server running on port ${PORT}`);
+    const HOST = "127.0.0.1";
+    app.listen(PORT, HOST, () => {
+        console.log(`Server running on ${HOST}:${PORT}`);
     });
 }
 main().catch(console.error);
